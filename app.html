@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CronosPlanner — App</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,500;9..40,700&family=Syne:wght@800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'DM Sans',sans-serif;background:#0d0d14;color:#e4e2ff;display:flex;flex-direction:column;}
+
+/* ── Pantalla de carga ──────────────────────────────────────────── */
+#loading{
+  position:fixed;inset:0;background:#0d0d14;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:20px;z-index:9999;
+  transition:opacity .45s ease;
+}
+#loading.fade-out{opacity:0;pointer-events:none;}
+.loading-logo{
+  font-family:'Syne',sans-serif;font-size:24px;font-weight:800;letter-spacing:-.02em;
+  background:linear-gradient(130deg,#a78bfa,#38bdf8);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  display:flex;align-items:center;gap:10px;
+}
+.spinner{
+  width:32px;height:32px;
+  border:3px solid rgba(124,106,247,.18);
+  border-top-color:#7c6af7;
+  border-radius:50%;
+  animation:spin .65s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Barra de usuario (arriba del iframe) ───────────────────────── */
+#userbar{
+  height:36px;flex-shrink:0;
+  background:rgba(13,13,20,.97);
+  border-bottom:1px solid rgba(255,255,255,.07);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  display:none;align-items:center;justify-content:space-between;
+  padding:0 14px;gap:10px;
+}
+#userbar.show{display:flex;}
+
+.userbar-left{display:flex;align-items:center;gap:8px;}
+.cronos-badge{
+  display:flex;align-items:center;gap:5px;
+  font-family:'Syne',sans-serif;font-size:13px;font-weight:800;
+  background:linear-gradient(130deg,#a78bfa,#38bdf8);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.sep-bar{width:1px;height:14px;background:rgba(255,255,255,.1);}
+.user-email{font-size:12px;color:rgba(255,255,255,.4);font-weight:500;}
+
+.logout-btn{
+  font-size:12px;color:rgba(255,255,255,.3);
+  background:none;border:none;cursor:pointer;
+  padding:4px 10px;border-radius:6px;
+  font-family:'DM Sans',sans-serif;
+  transition:all .2s;
+}
+.logout-btn:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.55);}
+
+/* ── iframe de la app Cronos ────────────────────────────────────── */
+#appFrame{
+  flex:1;border:none;width:100%;
+  display:none;
+}
+#appFrame.show{display:block;}
+</style>
+</head>
+<body>
+
+<!-- Pantalla de carga mientras se verifica la sesión -->
+<div id="loading">
+  <div class="loading-logo">
+    <svg width="30" height="30" viewBox="0 0 100 100" fill="none">
+      <defs>
+        <radialGradient id="sl" cx="36%" cy="28%" r="82%">
+          <stop offset="0%" stop-color="#a78bfa"/>
+          <stop offset="100%" stop-color="#4c1d95"/>
+        </radialGradient>
+      </defs>
+      <rect width="100" height="100" rx="22" fill="url(#sl)"/>
+      <path d="M20,17 C15,12 15,12 22,12 L78,12 C85,12 85,12 80,17 L59,43 C57,45 57,45 57,48 L57,52 C57,55 57,55 59,57 L80,83 C85,88 85,88 78,88 L22,88 C15,88 15,88 20,83 L41,57 C43,55 43,55 43,52 L43,48 C43,45 43,45 41,43 L20,17 Z" fill="white" opacity="0.92"/>
+    </svg>
+    CronosPlanner
+  </div>
+  <div class="spinner"></div>
+</div>
+
+<!-- Barra superior: marca + email del usuario + botón de logout -->
+<div id="userbar">
+  <div class="userbar-left">
+    <div class="cronos-badge">
+      <svg width="16" height="16" viewBox="0 0 100 100" fill="none">
+        <defs>
+          <radialGradient id="ub" cx="36%" cy="28%" r="82%">
+            <stop offset="0%" stop-color="#a78bfa"/>
+            <stop offset="100%" stop-color="#4c1d95"/>
+          </radialGradient>
+        </defs>
+        <rect width="100" height="100" rx="22" fill="url(#ub)"/>
+        <path d="M20,17 C15,12 15,12 22,12 L78,12 C85,12 85,12 80,17 L59,43 C57,45 57,45 57,48 L57,52 C57,55 57,55 59,57 L80,83 C85,88 85,88 78,88 L22,88 C15,88 15,88 20,83 L41,57 C43,55 43,55 43,52 L43,48 C43,45 43,45 41,43 L20,17 Z" fill="white" opacity="0.92"/>
+      </svg>
+      CronosPlanner
+    </div>
+    <div class="sep-bar"></div>
+    <div class="user-email" id="userEmail">—</div>
+  </div>
+  <button class="logout-btn" id="logoutBtn">Cerrar sesión →</button>
+</div>
+
+<!-- La app Cronos carga aquí (iframe mismo origen) -->
+<iframe
+  id="appFrame"
+  src="/horario/horario-app/renderer/horario_editor.html"
+  title="CronosPlanner App"
+  sandbox="allow-scripts allow-same-origin allow-forms allow-downloads allow-modals">
+</iframe>
+
+<script type="module">
+  import { requireAuth, signOut } from './supabase.js'
+
+  async function init() {
+    // Verificar sesión — requireAuth() redirige a login.html si no hay sesión
+    const session = await requireAuth()
+    if (!session) return
+
+    // Sesión activa: mostrar el email del usuario
+    const email = session.user?.email || ''
+    document.getElementById('userEmail').textContent = email
+
+    // Mostrar la barra de usuario y el iframe
+    document.getElementById('userbar').classList.add('show')
+    document.getElementById('appFrame').classList.add('show')
+
+    // Ocultar pantalla de carga cuando el iframe termine de cargar
+    document.getElementById('appFrame').addEventListener('load', () => {
+      const loading = document.getElementById('loading')
+      loading.classList.add('fade-out')
+      setTimeout(() => { loading.style.display = 'none' }, 500)
+    })
+
+    // Botón cerrar sesión
+    document.getElementById('logoutBtn').addEventListener('click', () => signOut())
+  }
+
+  init()
+</script>
+</body>
+</html>

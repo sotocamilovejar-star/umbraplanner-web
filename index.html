@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CronosPlanner — Tu horario universitario, rediseñado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+/* ─── RESET ─────────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+
+/* ─── TOKENS ─────────────────────────────────────────────────────── */
+:root{
+  --font-body:'DM Sans',sans-serif;
+  --font-title:'Plus Jakarta Sans',sans-serif;
+  --font-logo:'Syne',sans-serif;
+  --r-pill:999px;--r-card:18px;--r-sm:10px;
+  --ease:.22s cubic-bezier(.4,0,.2,1);
+}
+[data-theme="dark"]{
+  --bg:#0d0d14;--bg2:#13131f;--bg3:#181828;
+  --surf:rgba(255,255,255,0.04);--surf2:rgba(255,255,255,0.07);
+  --bdr:rgba(255,255,255,0.08);--bdr2:rgba(124,106,247,0.28);
+  --txt:#e4e2ff;--txt2:#8b88b8;--txt3:#3e3c60;
+  --acc:#7c6af7;--teal:#38bdf8;--gold:#fbbf24;
+  --glow:rgba(124,106,247,0.35);
+  --nb:rgba(13,13,20,0.82);
+  --glass:rgba(255,255,255,0.04);--glass-b:rgba(255,255,255,0.09);
+}
+[data-theme="light"]{
+  --bg:#f0eeff;--bg2:#e8e5ff;--bg3:#ede9ff;
+  --surf:rgba(124,106,247,0.06);--surf2:rgba(124,106,247,0.1);
+  --bdr:rgba(124,106,247,0.13);--bdr2:rgba(124,106,247,0.35);
+  --txt:#1c1a3a;--txt2:#5c5888;--txt3:#b0adce;
+  --acc:#6b57f5;--teal:#0ea5e9;--gold:#d97706;
+  --glow:rgba(107,87,245,0.2);
+  --nb:rgba(240,238,255,0.85);
+  --glass:rgba(255,255,255,0.55);--glass-b:rgba(124,106,247,0.15);
+}
+
+body{font-family:var(--font-body);background:var(--bg);color:var(--txt);line-height:1.6;overflow-x:hidden;transition:background .3s,color .3s;}
+a{text-decoration:none;color:inherit;}
+
+/* ─── NAVBAR ─────────────────────────────────────────────────────── */
+.navbar{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  background:var(--nb);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--bdr);
+  padding:0 6%;height:64px;
+  display:flex;align-items:center;justify-content:space-between;
+  transition:background .3s;
+}
+.nav-logo{
+  display:flex;align-items:center;gap:10px;
+  font-family:var(--font-logo);font-size:19px;font-weight:800;letter-spacing:-.02em;
+  background:linear-gradient(130deg,#a78bfa,#38bdf8);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.nav-links{display:flex;align-items:center;gap:30px;list-style:none;}
+.nav-links a{font-size:14px;font-weight:500;color:var(--txt2);transition:color var(--ease);}
+.nav-links a:hover{color:var(--txt);}
+.nav-right{display:flex;align-items:center;gap:10px;}
+.theme-btn{
+  width:38px;height:38px;border-radius:50%;background:var(--surf2);border:1px solid var(--bdr);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;
+  transition:all var(--ease);
+}
+.theme-btn:hover{transform:scale(1.08);border-color:var(--bdr2);}
+
+/* ─── BUTTONS ─────────────────────────────────────────────────────── */
+.btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:11px 24px;border-radius:var(--r-pill);
+  font-family:var(--font-body);font-size:14.5px;font-weight:600;
+  cursor:pointer;border:none;transition:all var(--ease);text-decoration:none;white-space:nowrap;
+}
+.btn-primary{background:var(--acc);color:#fff;box-shadow:0 0 22px var(--glow);}
+.btn-primary:hover{filter:brightness(1.14);box-shadow:0 0 36px var(--glow);transform:translateY(-1px);}
+.btn-outline{background:transparent;color:var(--txt);border:1.5px solid var(--bdr2);}
+.btn-outline:hover{background:var(--surf2);transform:translateY(-1px);}
+.btn-lg{padding:14px 30px;font-size:16px;}
+.btn-xl{padding:16px 40px;font-size:17px;}
+
+/* ─── SECTION SHELL ─────────────────────────────────────────────────── */
+section{padding:96px 6%;}
+.lbl{font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--acc);margin-bottom:12px;}
+.stitle{font-family:var(--font-title);font-size:clamp(28px,4vw,46px);font-weight:800;line-height:1.1;letter-spacing:-.03em;margin-bottom:16px;text-wrap:pretty;}
+.ssub{font-size:17px;color:var(--txt2);max-width:540px;line-height:1.7;margin-bottom:44px;text-wrap:pretty;}
+.tc{text-align:center;}.mx{margin-left:auto;margin-right:auto;}
+.sep{height:1px;background:linear-gradient(90deg,transparent,var(--bdr2),transparent);margin:0 6%;}
+
+/* ─── HERO ─────────────────────────────────────────────────────────── */
+#hero{
+  padding-top:148px;padding-bottom:80px;
+  display:grid;grid-template-columns:1fr 1.1fr;gap:64px;align-items:center;
+  min-height:100vh;position:relative;overflow:hidden;
+}
+.hero-orb1{position:absolute;top:-200px;left:-180px;width:780px;height:780px;border-radius:50%;background:radial-gradient(circle,rgba(124,106,247,.11) 0%,transparent 70%);pointer-events:none;}
+.hero-orb2{position:absolute;bottom:-120px;right:-100px;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(56,189,248,.08) 0%,transparent 68%);pointer-events:none;}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  background:rgba(124,106,247,.12);border:1px solid rgba(124,106,247,.32);
+  border-radius:var(--r-pill);padding:5px 14px;
+  font-size:12px;font-weight:700;color:var(--acc);margin-bottom:24px;
+}
+.hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--acc);box-shadow:0 0 6px var(--acc);}
+.hero-title{font-family:var(--font-title);font-size:clamp(40px,5.5vw,74px);font-weight:800;line-height:1.06;letter-spacing:-.04em;margin-bottom:22px;text-wrap:pretty;}
+.hero-title em{font-style:normal;background:linear-gradient(128deg,#a78bfa 0%,#38bdf8 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.hero-sub{font-size:17.5px;color:var(--txt2);line-height:1.72;max-width:480px;margin-bottom:38px;}
+.hero-ctas{display:flex;gap:12px;flex-wrap:wrap;}
+
+/* ─── APP MOCKUP ─────────────────────────────────────────────────────── */
+.mockup-wrap{position:relative;z-index:1;}
+.mockup-glow{
+  position:absolute;inset:-30px;border-radius:30px;
+  background:radial-gradient(ellipse at 50% 50%,rgba(124,106,247,.18),transparent 70%);
+  filter:blur(20px);pointer-events:none;
+}
+.app-mockup{
+  background:#100f1e;border:1px solid rgba(255,255,255,.1);border-radius:20px;
+  overflow:hidden;box-shadow:0 28px 80px rgba(0,0,0,.55),0 0 0 1px rgba(124,106,247,.08);
+  position:relative;
+}
+.mockup-bar{
+  background:rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.07);
+  padding:11px 15px;display:flex;align-items:center;gap:7px;
+}
+.dot{width:10px;height:10px;border-radius:50%;}
+.dr{background:#ff5f57;}.dy{background:#febc2e;}.dg{background:#28c840;}
+.m-tabs{display:flex;gap:2px;margin-left:14px;}
+.m-tab{font-size:11px;color:rgba(255,255,255,.35);padding:2px 10px;border-radius:5px;font-weight:600;font-family:var(--font-body);}
+.m-tab.act{background:rgba(124,106,247,.22);color:#a78bfa;}
+.sg{padding:12px 14px 14px;}
+.sh{display:grid;grid-template-columns:42px repeat(5,1fr);gap:4px;margin-bottom:4px;}
+.shc{text-align:center;font-size:9px;font-weight:700;color:rgba(255,255,255,.3);letter-spacing:.05em;padding:3px 0;line-height:1.4;}
+.shc.tod{color:#a78bfa;}
+.sr{display:grid;grid-template-columns:42px repeat(5,1fr);gap:4px;margin-bottom:4px;}
+.st{font-size:8px;color:rgba(255,255,255,.22);text-align:right;padding-right:5px;padding-top:5px;line-height:1.3;}
+.sc{border-radius:7px;padding:5px 6px;min-height:44px;position:relative;overflow:hidden;}
+.sc.e{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.045);}
+.sc-n{font-size:8px;font-weight:700;color:#fff;line-height:1.25;}
+.sc-s{font-size:7px;color:rgba(255,255,255,.55);margin-top:1px;}
+.sc-stripe{position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:7px 0 0 7px;}
+/* cell palettes */
+.cb{background:rgba(14,165,233,.2);}.sb{background:#0ea5e9;}
+.cg{background:rgba(16,185,129,.2);}.sg2{background:#10b981;}
+.cp{background:rgba(244,114,182,.2);}.sp{background:#f472b6;}
+.cv{background:rgba(139,92,246,.2);}.sv{background:#8b5cf6;}
+.cr{background:rgba(239,68,68,.2);}.sr2{background:#ef4444;}
+.ca{background:rgba(251,191,36,.12);}.sa{background:#fbbf24;}
+.cz{background:rgba(148,163,184,.1);}.sz{background:#94a3b8;}
+
+/* ─── DEMO ─────────────────────────────────────────────────────────── */
+#demo{padding:80px 6%;background:linear-gradient(180deg,transparent,rgba(124,106,247,.035),transparent);}
+.demo-tabs{
+  display:flex;gap:3px;justify-content:center;
+  background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r-pill);
+  padding:4px;width:fit-content;margin:0 auto 40px;
+}
+.demo-tab{
+  padding:8px 22px;border-radius:var(--r-pill);font-size:14px;font-weight:600;
+  color:var(--txt3);cursor:pointer;border:none;background:transparent;
+  transition:all var(--ease);font-family:var(--font-body);
+}
+.demo-tab.act{background:var(--acc);color:#fff;box-shadow:0 0 18px var(--glow);}
+.demo-screen{
+  background:#100f1e;border:1px solid rgba(255,255,255,.09);border-radius:20px;
+  overflow:hidden;max-width:920px;margin:0 auto;
+  box-shadow:0 32px 80px rgba(0,0,0,.5);min-height:460px;
+}
+
+/* ─── FEATURES ─────────────────────────────────────────────────────── */
+#features{padding:96px 6%;}
+.feat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:56px;}
+.feat-card{
+  background:var(--glass);border:1px solid var(--glass-b);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-radius:var(--r-card);padding:28px 24px;position:relative;overflow:hidden;
+  transition:transform var(--ease),border-color var(--ease),box-shadow var(--ease);
+}
+.feat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent);}
+.feat-card:hover{transform:translateY(-5px);border-color:var(--bdr2);box-shadow:0 12px 40px rgba(124,106,247,.12);}
+.feat-icon{width:48px;height:48px;border-radius:13px;display:flex;align-items:center;justify-content:center;margin-bottom:18px;}
+.feat-title{font-family:var(--font-title);font-size:16px;font-weight:700;margin-bottom:8px;}
+.feat-desc{font-size:13.5px;color:var(--txt2);line-height:1.65;}
+.pro-badge{
+  display:inline-flex;align-items:center;gap:4px;margin-top:12px;
+  background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.32);
+  border-radius:var(--r-pill);padding:3px 10px;font-size:10.5px;font-weight:700;color:var(--gold);
+}
+
+/* ─── HOW IT WORKS ─────────────────────────────────────────────────── */
+#how{padding:96px 6%;background:linear-gradient(180deg,transparent,rgba(56,189,248,.028),transparent);}
+.steps{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:0;align-items:center;max-width:820px;margin:60px auto 0;}
+.step{text-align:center;padding:0 16px;}
+.step-num{
+  width:52px;height:52px;border-radius:50%;
+  background:linear-gradient(135deg,rgba(124,106,247,.18),rgba(56,189,248,.18));
+  border:1px solid var(--bdr2);display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-title);font-size:22px;font-weight:800;color:var(--acc);
+  margin:0 auto 18px;box-shadow:0 0 18px var(--glow);
+}
+.step-title{font-family:var(--font-title);font-size:16px;font-weight:700;margin-bottom:7px;}
+.step-desc{font-size:13.5px;color:var(--txt2);line-height:1.55;}
+.step-arr{color:var(--txt3);font-size:22px;padding:0 4px;}
+
+/* ─── PRICING ─────────────────────────────────────────────────────── */
+#pricing{padding:96px 6%;}
+.p-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:740px;margin:56px auto 0;}
+.p-card{
+  background:var(--glass);border:1px solid var(--glass-b);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-radius:22px;padding:38px 34px;position:relative;overflow:hidden;
+}
+.p-card.featured{
+  border-color:rgba(124,106,247,.42);background:rgba(124,106,247,.08);
+  box-shadow:0 0 44px rgba(124,106,247,.12),inset 0 1px 0 rgba(255,255,255,.1);
+}
+.p-card.featured::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#7c6af7,#38bdf8);}
+.trial-badge{
+  position:absolute;top:22px;right:22px;
+  background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.38);
+  color:var(--gold);font-size:10.5px;font-weight:700;
+  padding:4px 10px;border-radius:var(--r-pill);text-transform:uppercase;letter-spacing:.06em;
+}
+.p-plan{font-size:12px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;}
+.p-plan.acc{color:var(--acc);}
+.p-price{font-family:var(--font-title);font-size:56px;font-weight:800;line-height:1;margin-bottom:7px;}
+.p-price-grad{background:linear-gradient(130deg,#a78bfa,#38bdf8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.p-mo{font-size:18px;color:var(--txt2);font-weight:500;-webkit-text-fill-color:var(--txt2);}
+.p-tagline{font-size:13.5px;color:var(--txt2);margin-bottom:30px;}
+.p-feats{list-style:none;margin-bottom:34px;}
+.p-feats li{display:flex;align-items:flex-start;gap:10px;font-size:13.5px;padding:7px 0;border-bottom:1px solid var(--bdr);color:var(--txt2);}
+.p-feats li:last-child{border-bottom:none;}
+.ck{color:var(--acc);font-size:13px;flex-shrink:0;margin-top:1px;}
+.ck-gold{color:var(--gold);}
+.ck-off{color:var(--txt3);}
+
+/* ─── DOWNLOAD ─────────────────────────────────────────────────────── */
+#download{
+  padding:100px 6%;text-align:center;position:relative;overflow:hidden;
+  border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr);
+  background:linear-gradient(135deg,rgba(124,106,247,.07) 0%,rgba(56,189,248,.05) 100%);
+}
+#download::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 110%,rgba(124,106,247,.14),transparent 65%);pointer-events:none;}
+.dl-content{position:relative;z-index:1;}
+.platform-row{display:flex;gap:8px;justify-content:center;margin:24px 0;}
+.platform-chip{
+  background:var(--surf2);border:1px solid var(--bdr);border-radius:var(--r-pill);
+  padding:7px 18px;font-size:13px;font-weight:600;color:var(--txt2);
+  display:flex;align-items:center;gap:7px;
+}
+.dl-note{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--txt2);margin-top:16px;}
+
+/* ─── TESTIMONIALS ─────────────────────────────────────────────────── */
+#testimonials{padding:96px 6%;}
+.testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:56px;}
+.testi-card{
+  background:var(--glass);border:1px solid var(--glass-b);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-radius:var(--r-card);padding:30px;position:relative;
+  transition:transform var(--ease),border-color var(--ease);
+}
+.testi-card:hover{transform:translateY(-4px);border-color:var(--bdr2);}
+.testi-card::before{content:'"';position:absolute;top:16px;right:22px;font-size:68px;line-height:1;color:var(--acc);opacity:.12;font-family:Georgia,serif;}
+.stars{color:var(--gold);font-size:13px;margin-bottom:14px;letter-spacing:2px;}
+.testi-text{font-size:14px;line-height:1.72;color:var(--txt2);margin-bottom:22px;}
+.testi-author{display:flex;align-items:center;gap:12px;}
+.author-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0;}
+.author-name{font-size:14px;font-weight:700;}
+.author-meta{font-size:11.5px;color:var(--txt3);}
+
+/* ─── FOOTER ─────────────────────────────────────────────────────── */
+footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:52px 6%;display:grid;grid-template-columns:1.2fr 1fr;gap:48px;align-items:start;transition:background .3s;}
+.footer-brand p{font-size:13.5px;color:var(--txt3);margin-top:10px;line-height:1.65;max-width:300px;}
+.footer-links{display:flex;gap:48px;}
+.footer-col h4{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt2);margin-bottom:14px;}
+.footer-col a{display:block;font-size:13.5px;color:var(--txt3);margin-bottom:9px;transition:color var(--ease);}
+.footer-col a:hover{color:var(--txt);}
+.footer-bottom{padding:18px 6%;text-align:center;font-size:12px;color:var(--txt3);border-top:1px solid var(--bdr);background:var(--bg2);transition:background .3s;}
+
+/* ─── TWEAKS PANEL ─────────────────────────────────────────────────── */
+#tweaks{
+  position:fixed;bottom:24px;right:24px;z-index:9999;
+  background:rgba(16,14,28,.96);border:1px solid rgba(124,106,247,.35);
+  border-radius:16px;padding:20px 22px;width:252px;
+  backdrop-filter:blur(20px);box-shadow:0 16px 48px rgba(0,0,0,.5);
+  display:none;
+}
+#tweaks.open{display:block;}
+.tw-title{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#a78bfa;margin-bottom:18px;}
+.tw-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.tw-label{font-size:12.5px;color:rgba(255,255,255,.55);}
+.tw-toggle{
+  width:40px;height:22px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);
+  border-radius:11px;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;
+}
+.tw-toggle.on{background:var(--acc);border-color:var(--acc);}
+.tw-toggle::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:2px;left:2px;transition:transform .2s;}
+.tw-toggle.on::after{transform:translateX(18px);}
+.tw-close{
+  width:100%;margin-top:8px;padding:8px;border-radius:8px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;font-family:inherit;
+  transition:all var(--ease);
+}
+.tw-close:hover{background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);}
+.tw-swatches{display:flex;gap:7px;margin-top:4px;}
+.tw-sw{width:24px;height:24px;border-radius:50%;cursor:pointer;transition:transform .15s,box-shadow .15s;}
+.tw-sw:hover{transform:scale(1.15);}
+.tw-sw.sel{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--acc);}
+.tw-sep{height:1px;background:rgba(255,255,255,.07);margin:8px 0 14px;}
+
+/* ─── SCROLL ANIMATIONS ─────────────────────────────────────────────── */
+.fade-up{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease;}
+.fade-up.visible{opacity:1;transform:none;}
+
+/* ─── RESPONSIVE ─────────────────────────────────────────────────── */
+@media(max-width:960px){
+  #hero{grid-template-columns:1fr;padding-top:110px;}
+  .hero-mockup-col{display:none;}
+  .feat-grid{grid-template-columns:repeat(2,1fr);}
+  .steps{grid-template-columns:1fr;max-width:340px;}
+  .step-arr{display:none;}
+  .p-grid{grid-template-columns:1fr;max-width:400px;}
+  .testi-grid{grid-template-columns:1fr;}
+  .nav-links{display:none;}
+  footer{grid-template-columns:1fr;}
+  .footer-links{flex-wrap:wrap;gap:28px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     NAVBAR
+═══════════════════════════════════════════════════════════════════ -->
+<nav class="navbar">
+  <a href="#" class="nav-logo">
+    <svg width="32" height="32" viewBox="0 0 100 100" fill="none">
+      <defs>
+        <radialGradient id="lg_bg" cx="36%" cy="28%" r="82%">
+          <stop offset="0%" stop-color="#a78bfa"/>
+          <stop offset="100%" stop-color="#4c1d95"/>
+        </radialGradient>
+        <linearGradient id="lg_hg" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="rgba(220,240,255,0.12)"/>
+          <stop offset="100%" stop-color="rgba(150,210,255,0.06)"/>
+        </linearGradient>
+        <clipPath id="lg_cp"><path d="M20,17 C15,12 15,12 22,12 L78,12 C85,12 85,12 80,17 L59,43 C57,45 57,45 57,48 L57,52 C57,55 57,55 59,57 L80,83 C85,88 85,88 78,88 L22,88 C15,88 15,88 20,83 L41,57 C43,55 43,55 43,52 L43,48 C43,45 43,45 41,43 L20,17 Z"/></clipPath>
+      </defs>
+      <rect width="100" height="100" rx="22" fill="url(#lg_bg)"/>
+      <rect width="100" height="50" rx="22" fill="rgba(255,255,255,0.08)"/>
+      <path d="M20,17 C15,12 15,12 22,12 L78,12 C85,12 85,12 80,17 L59,43 C57,45 57,45 57,48 L57,52 C57,55 57,55 59,57 L80,83 C85,88 85,88 78,88 L22,88 C15,88 15,88 20,83 L41,57 C43,55 43,55 43,52 L43,48 C43,45 43,45 41,43 L20,17 Z" fill="white" opacity="0.95"/>
+      <g clip-path="url(#lg_cp)"><rect width="100" height="100" fill="url(#lg_hg)"/></g>
+      <path d="M28,19 C23,29 21,40 23,52" fill="none" stroke="white" stroke-width="3.8" stroke-linecap="round" opacity="0.55"/>
+      <ellipse cx="65" cy="20" rx="5" ry="2.8" fill="white" opacity="0.22" transform="rotate(-30,65,20)"/>
+      <path d="M32,33 Q50,36.5 68,33 L57,43 L43,43 Z" fill="rgba(76,29,149,0.62)" opacity="0.8"/>
+      <path d="M28,19 C23,29 21,40 23,52" fill="none" stroke="white" stroke-width="3.8" stroke-linecap="round" opacity="0.55"/>
+    </svg>
+    CronosPlanner
+  </a>
+  <ul class="nav-links">
+    <li><a href="#features">Funciones</a></li>
+    <li><a href="#pricing">Precios</a></li>
+    <li><a href="#download">Descargar</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="/cronos-web/login.html?tab=login" style="font-size:13.5px;color:var(--txt2);font-weight:500;margin-right:4px;text-decoration:none;transition:color .2s;" onmouseover="this.style.color='var(--txt)'" onmouseout="this.style.color='var(--txt2)'">Iniciar sesión</a>
+    <button class="theme-btn" id="themeBtn" title="Cambiar tema">🌙</button>
+    <a href="/cronos-web/login.html?tab=register" class="btn btn-primary" style="padding:9px 20px;font-size:13.5px;">Empezar gratis</a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     HERO
+═══════════════════════════════════════════════════════════════════ -->
+<section id="hero" style="padding-left:6%;padding-right:6%;">
+  <div class="hero-orb1"></div>
+  <div class="hero-orb2"></div>
+
+  <!-- Left: copy -->
+  <div class="hero-text fade-up">
+    <div class="hero-badge"><span class="hero-badge-dot"></span> Nuevo en 2025 — Versión Web + Escritorio</div>
+    <h1 class="hero-title">Tu horario<br>universitario,<br><em>rediseñado</em></h1>
+    <p class="hero-sub">Organiza clases, evaluaciones y tareas en un solo lugar. Con burbuja flotante para escritorio y vistas de semana, día y mes.</p>
+    <div class="hero-ctas">
+      <a href="/cronos-web/login.html?tab=register" class="btn btn-primary btn-lg">Probar gratis 14 días</a>
+      <a href="#demo" class="btn btn-outline btn-lg">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        Ver demo
+      </a>
+    </div>
+  </div>
+
+  <!-- Right: app mockup -->
+  <div class="hero-mockup-col fade-up" style="transition-delay:.15s;">
+    <div class="mockup-wrap">
+      <div class="mockup-glow"></div>
+      <div class="app-mockup">
+        <div class="mockup-bar">
+          <div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div>
+          <div class="m-tabs">
+            <div class="m-tab act">Semana</div>
+            <div class="m-tab">Hoy</div>
+            <div class="m-tab">Mes</div>
+          </div>
+        </div>
+        <div class="sg">
+          <!-- header row -->
+          <div class="sh">
+            <div class="shc"></div>
+            <div class="shc tod">LUN<br>20</div>
+            <div class="shc">MAR<br>21</div>
+            <div class="shc">MIÉ<br>22</div>
+            <div class="shc">JUE<br>23</div>
+            <div class="shc">VIE<br>24</div>
+          </div>
+          <!-- Row 1 -->
+          <div class="sr">
+            <div class="st">08:30<br>09:30</div>
+            <div class="sc e"></div>
+            <div class="sc e"></div>
+            <div class="sc e"></div>
+            <div class="sc cb"><div class="sc-stripe sb"></div><div class="sc-n">Ing. Transporte</div><div class="sc-s">R1-202</div></div>
+            <div class="sc e"></div>
+          </div>
+          <!-- Row 2 -->
+          <div class="sr">
+            <div class="st">09:40<br>10:40</div>
+            <div class="sc cp"><div class="sc-stripe sp"></div><div class="sc-n">Consulta</div><div class="sc-s">Oficina</div></div>
+            <div class="sc cb"><div class="sc-stripe sb"></div><div class="sc-n">Ing. Transporte</div><div class="sc-s">OC-05</div></div>
+            <div class="sc e"></div>
+            <div class="sc cb"><div class="sc-stripe sb"></div><div class="sc-n">Ing. Transporte</div><div class="sc-s">R1-202</div></div>
+            <div class="sc e"></div>
+          </div>
+          <!-- Row 3 -->
+          <div class="sr">
+            <div class="st">10:50<br>11:50</div>
+            <div class="sc cv"><div class="sc-stripe sv"></div><div class="sc-n">Hormigón Armado</div><div class="sc-s">D-205</div></div>
+            <div class="sc cb"><div class="sc-stripe sb"></div><div class="sc-n">Ing. Transporte</div><div class="sc-s">OC-05</div></div>
+            <div class="sc e"></div>
+            <div class="sc e"></div>
+            <div class="sc cg"><div class="sc-stripe sg2"></div><div class="sc-n">Geotecnia</div><div class="sc-s">Lab-03</div></div>
+          </div>
+          <!-- Row 4 -->
+          <div class="sr">
+            <div class="st">12:00<br>13:00</div>
+            <div class="sc cv"><div class="sc-stripe sv"></div><div class="sc-n">Hormigón Armado</div><div class="sc-s">D-205</div></div>
+            <div class="sc e"></div>
+            <div class="sc cr"><div class="sc-stripe sr2"></div><div class="sc-n">Evaluación</div><div class="sc-s">D-201</div></div>
+            <div class="sc e"></div>
+            <div class="sc cg"><div class="sc-stripe sg2"></div><div class="sc-n">Geotecnia</div><div class="sc-s">Lab-03</div></div>
+          </div>
+          <!-- Row 5: Almuerzo -->
+          <div class="sr">
+            <div class="st">13:10<br>14:30</div>
+            <div class="sc cz" style="opacity:.5"><div class="sc-stripe sz"></div><div class="sc-n">Almuerzo</div></div>
+            <div class="sc cz" style="opacity:.5"><div class="sc-stripe sz"></div><div class="sc-n">Almuerzo</div></div>
+            <div class="sc cz" style="opacity:.5"><div class="sc-stripe sz"></div><div class="sc-n">Almuerzo</div></div>
+            <div class="sc cz" style="opacity:.5"><div class="sc-stripe sz"></div><div class="sc-n">Almuerzo</div></div>
+            <div class="sc cz" style="opacity:.5"><div class="sc-stripe sz"></div><div class="sc-n">Almuerzo</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     DEMO
+═══════════════════════════════════════════════════════════════════ -->
+<section id="demo">
+  <div class="tc fade-up">
+    <div class="lbl">Demo interactivo</div>
+    <h2 class="stitle">Tres vistas, un solo lugar</h2>
+    <p class="ssub mx">Cambia entre semana, día y calendario — todo en tiempo real.</p>
+  </div>
+  <div class="demo-tabs fade-up">
+    <button class="demo-tab act" onclick="showDemo(this,'semana')">📅 Semana</button>
+    <button class="demo-tab" onclick="showDemo(this,'hoy')">⏰ Modo Hoy</button>
+    <button class="demo-tab" onclick="showDemo(this,'mes')">🗓 Mes</button>
+  </div>
+  <div class="demo-screen fade-up" id="demoScreen"></div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     FEATURES
+═══════════════════════════════════════════════════════════════════ -->
+<section id="features">
+  <div class="tc fade-up">
+    <div class="lbl">Funcionalidades</div>
+    <h2 class="stitle">Todo lo que necesitas para tu semana</h2>
+  </div>
+  <div class="feat-grid">
+    <!-- Card 1 -->
+    <div class="feat-card fade-up">
+      <div class="feat-icon" style="background:rgba(14,165,233,.14);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/>
+        </svg>
+      </div>
+      <div class="feat-title">Horario Semanal</div>
+      <div class="feat-desc">Celdas de colores por asignatura. Drag &amp; drop para mover bloques. Categorías y colores personalizables.</div>
+    </div>
+    <!-- Card 2 -->
+    <div class="feat-card fade-up" style="transition-delay:.07s;">
+      <div class="feat-icon" style="background:rgba(124,106,247,.15);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7c6af7" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+      </div>
+      <div class="feat-title">Modo Hoy</div>
+      <div class="feat-desc">Timeline proporcional del día. Línea de progreso en tiempo real. Sabe cuánto falta para cada clase.</div>
+    </div>
+    <!-- Card 3 -->
+    <div class="feat-card fade-up" style="transition-delay:.14s;">
+      <div class="feat-icon" style="background:rgba(16,185,129,.14);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/>
+          <circle cx="8" cy="15" r="1.2" fill="#10b981"/><circle cx="12" cy="15" r="1.2" fill="#10b981"/><circle cx="16" cy="15" r="1.2" fill="#10b981"/>
+        </svg>
+      </div>
+      <div class="feat-title">Calendario</div>
+      <div class="feat-desc">Vista mensual con evaluaciones, entregas y pruebas destacadas. Nunca más olvides una fecha.</div>
+    </div>
+    <!-- Card 4 -->
+    <div class="feat-card fade-up" style="transition-delay:.21s;">
+      <div class="feat-icon" style="background:rgba(251,191,36,.1);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+      </div>
+      <div class="feat-title">Burbuja Flotante</div>
+      <div class="feat-desc">Siempre visible sobre otras ventanas en escritorio. Muestra la clase actual, la siguiente y alertas.</div>
+      <div class="pro-badge">⭐ Pro</div>
+    </div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     HOW IT WORKS
+═══════════════════════════════════════════════════════════════════ -->
+<section id="how">
+  <div class="tc fade-up">
+    <div class="lbl">¿Cómo funciona?</div>
+    <h2 class="stitle">Listo en 3 minutos</h2>
+  </div>
+  <div class="steps fade-up">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-title">Crea tu cuenta</div>
+      <div class="step-desc">Regístrate gratis en segundos. Sin tarjeta de crédito requerida.</div>
+    </div>
+    <div class="step-arr">→</div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-title">Arma tu horario</div>
+      <div class="step-desc">Agrega clases y asignaturas con drag &amp; drop en segundos.</div>
+    </div>
+    <div class="step-arr">→</div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-title">Úsalo en todo</div>
+      <div class="step-desc">Accede desde la web, el escritorio y la burbuja flotante.</div>
+    </div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     PRICING
+═══════════════════════════════════════════════════════════════════ -->
+<section id="pricing">
+  <div class="tc fade-up">
+    <div class="lbl">Precios</div>
+    <h2 class="stitle">Planes simples</h2>
+    <p class="ssub mx">Empieza gratis. Pasa a Pro cuando lo necesites.</p>
+  </div>
+  <div class="p-grid">
+    <!-- Free -->
+    <div class="p-card fade-up">
+      <div class="p-plan">Gratis</div>
+      <div class="p-price">$0</div>
+      <div class="p-tagline">App web · Para siempre</div>
+      <ul class="p-feats">
+        <li><span class="ck">✓</span> Horario semanal completo</li>
+        <li><span class="ck">✓</span> Modo Hoy (timeline)</li>
+        <li><span class="ck">✓</span> Calendario mensual</li>
+        <li><span class="ck">✓</span> Categorías ilimitadas</li>
+        <li><span class="ck ck-off">✗</span> <span style="color:var(--txt3)">App de escritorio</span></li>
+        <li><span class="ck ck-off">✗</span> <span style="color:var(--txt3)">Burbuja flotante</span></li>
+        <li><span class="ck ck-off">✗</span> <span style="color:var(--txt3)">Exportar como PNG</span></li>
+      </ul>
+      <a href="/cronos-web/login.html?tab=register" class="btn btn-outline" style="width:100%;justify-content:center;">Empezar gratis</a>
+    </div>
+    <!-- Pro -->
+    <div class="p-card featured fade-up" style="transition-delay:.1s;">
+      <div class="trial-badge">14 días gratis</div>
+      <div class="p-plan acc">Pro</div>
+      <div class="p-price p-price-grad">$4<span class="p-mo">/mes</span></div>
+      <div class="p-tagline">Todo lo que necesitas</div>
+      <ul class="p-feats">
+        <li><span class="ck">✓</span> Todo lo del plan Gratis</li>
+        <li><span class="ck">✓</span> App de escritorio (Win / Mac)</li>
+        <li><span class="ck ck-gold">⭐</span> Burbuja flotante Pro</li>
+        <li><span class="ck ck-gold">⭐</span> Exportar horario como PNG</li>
+        <li><span class="ck ck-gold">⭐</span> Notificaciones de clases</li>
+        <li><span class="ck ck-gold">⭐</span> Temas de color personalizados</li>
+        <li><span class="ck">✓</span> Soporte prioritario</li>
+      </ul>
+      <a href="/cronos-web/login.html?tab=register" class="btn btn-primary" style="width:100%;justify-content:center;padding:14px;font-size:15px;">Probar Pro gratis 14 días</a>
+    </div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     DOWNLOAD
+═══════════════════════════════════════════════════════════════════ -->
+<section id="download">
+  <div class="dl-content fade-up">
+    <div class="lbl tc">Escritorio</div>
+    <h2 class="stitle tc">Cronos en tu escritorio</h2>
+    <p class="ssub tc mx">La versión Pro incluye burbuja flotante siempre visible, notificaciones de clases y exportación de tu horario.</p>
+    <div class="platform-row">
+      <div class="platform-chip">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+        Windows
+      </div>
+      <div class="platform-chip">
+        <svg width="14" height="14" viewBox="0 0 814 1000" fill="currentColor"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 523.5 6 432.6 6 342.7c0-154.3 100.7-236.1 199.6-236.1 52.4 0 96.1 34.5 127.8 34.5 30.4 0 78.4-36.4 141-36.4 22.4 0 108.2 1.9 167.5 80.2zm-127.8-113.8c30.4-35.8 52.4-85.6 52.4-135.4 0-6.9-.6-13.9-1.9-19.5-49.4 1.9-107.8 33.2-142.2 75.6-27.5 31.4-53.1 81.1-53.1 131.5 0 7.5 1.3 15 1.9 17.5 3.2.6 8.5 1.3 13.8 1.3 43.4 0 98.1-29.1 129.1-70.9z"/></svg>
+        macOS
+      </div>
+    </div>
+    <a href="/cronos-web/downloads/CronosPlannerSetup.exe" download class="btn btn-primary btn-xl">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v13M7 11l5 5 5-5"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
+      Descargar para Windows
+    </a>
+    <div class="dl-note">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+      También disponible para macOS · Requiere plan Pro
+    </div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TESTIMONIALS
+═══════════════════════════════════════════════════════════════════ -->
+<section id="testimonials">
+  <div class="tc fade-up">
+    <div class="lbl">Testimonios</div>
+    <h2 class="stitle">Lo que dicen los estudiantes</h2>
+  </div>
+  <div class="testi-grid">
+    <div class="testi-card fade-up">
+      <div class="stars">★★★★★</div>
+      <p class="testi-text">Antes anotaba todo en papel y siempre me olvidaba las evaluaciones. Con Cronos tengo todo en un lugar y la burbuja me avisa antes de cada clase.</p>
+      <div class="testi-author">
+        <div class="author-av" style="background:linear-gradient(135deg,#7c6af7,#38bdf8);">V</div>
+        <div>
+          <div class="author-name">Valentina R.</div>
+          <div class="author-meta">Ingeniería Civil · 3er año</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card fade-up" style="transition-delay:.08s;">
+      <div class="stars">★★★★★</div>
+      <p class="testi-text">El Modo Hoy es lo más útil que existe. De un vistazo sé cuánto falta para terminar el día y qué viene después. Imposible volver atrás.</p>
+      <div class="testi-author">
+        <div class="author-av" style="background:linear-gradient(135deg,#10b981,#0ea5e9);">M</div>
+        <div>
+          <div class="author-name">Matías C.</div>
+          <div class="author-meta">Medicina · 2do año</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card fade-up" style="transition-delay:.16s;">
+      <div class="stars">★★★★★</div>
+      <p class="testi-text">El diseño es increíble, parece una app premium de verdad. La uso en web y escritorio y todo se sincroniza perfecto. Vale cada peso del plan Pro.</p>
+      <div class="testi-author">
+        <div class="author-av" style="background:linear-gradient(135deg,#f472b6,#ef4444);">C</div>
+        <div>
+          <div class="author-name">Catalina M.</div>
+          <div class="author-meta">Diseño Gráfico · 4to año</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════════════════════════════ -->
+<footer>
+  <div class="footer-brand">
+    <a href="#" class="nav-logo" style="display:inline-flex;margin-bottom:2px;">
+      <svg width="26" height="26" viewBox="0 0 100 100" fill="none">
+        <defs><radialGradient id="ft_bg" cx="36%" cy="28%" r="82%"><stop offset="0%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#4c1d95"/></radialGradient></defs>
+        <rect width="100" height="100" rx="22" fill="url(#ft_bg)"/>
+        <path d="M20,17 C15,12 15,12 22,12 L78,12 C85,12 85,12 80,17 L59,43 C57,45 57,45 57,48 L57,52 C57,55 57,55 59,57 L80,83 C85,88 85,88 78,88 L22,88 C15,88 15,88 20,83 L41,57 C43,55 43,55 43,52 L43,48 C43,45 43,45 41,43 L20,17 Z" fill="white" opacity="0.95"/>
+      </svg>
+      CronosPlanner
+    </a>
+    <p>Tu horario universitario, rediseñado. Disponible en web y escritorio para Mac y Windows.</p>
+  </div>
+  <div class="footer-links">
+    <div class="footer-col">
+      <h4>Producto</h4>
+      <a href="#features">Funciones</a>
+      <a href="#pricing">Precios</a>
+      <a href="#download">Descargar</a>
+    </div>
+    <div class="footer-col">
+      <h4>Legal</h4>
+      <a href="#">Términos de uso</a>
+      <a href="#">Privacidad</a>
+      <a href="#">Cookies</a>
+    </div>
+    <div class="footer-col">
+      <h4>Contacto</h4>
+      <a href="#">Twitter / X</a>
+      <a href="#">Instagram</a>
+      <a href="#">hola@cronos.app</a>
+    </div>
+  </div>
+</footer>
+<div class="footer-bottom">© 2025 CronosPlanner · Hecho con ☕ para estudiantes</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     TWEAKS PANEL
+═══════════════════════════════════════════════════════════════════ -->
+<div id="tweaks">
+  <div class="tw-title">⚙ Tweaks</div>
+
+  <div class="tw-row">
+    <span class="tw-label">Modo oscuro</span>
+    <div class="tw-toggle on" id="twDark" onclick="toggleTweak(this,'dark')"></div>
+  </div>
+
+  <div class="tw-sep"></div>
+
+  <div class="tw-row" style="flex-direction:column;align-items:flex-start;gap:8px;">
+    <span class="tw-label">Color acento</span>
+    <div class="tw-swatches">
+      <div class="tw-sw sel" style="background:#7c6af7;" onclick="setAccent('#7c6af7','rgba(124,106,247,.35)',this)" title="Violeta"></div>
+      <div class="tw-sw" style="background:#0ea5e9;" onclick="setAccent('#0ea5e9','rgba(14,165,233,.35)',this)" title="Azul sky"></div>
+      <div class="tw-sw" style="background:#10b981;" onclick="setAccent('#10b981','rgba(16,185,129,.35)',this)" title="Esmeralda"></div>
+      <div class="tw-sw" style="background:#f472b6;" onclick="setAccent('#f472b6','rgba(244,114,182,.35)',this)" title="Rosa"></div>
+    </div>
+  </div>
+
+  <div class="tw-sep"></div>
+
+  <div class="tw-row">
+    <span class="tw-label">Glow en botones</span>
+    <div class="tw-toggle on" id="twGlow" onclick="toggleTweak(this,'glow')"></div>
+  </div>
+  <div class="tw-row">
+    <span class="tw-label">Animaciones</span>
+    <div class="tw-toggle on" id="twAnim" onclick="toggleTweak(this,'anim')"></div>
+  </div>
+
+  <button class="tw-close" onclick="closeTweaks()">Cerrar panel</button>
+</div>
+
+<script>
+/* ═══ THEME TOGGLE ═══════════════════════════════════════════════ */
+const html = document.documentElement;
+const themeBtn = document.getElementById('themeBtn');
+let dark = true;
+
+themeBtn.addEventListener('click', () => {
+  dark = !dark;
+  html.setAttribute('data-theme', dark ? 'dark' : 'light');
+  themeBtn.textContent = dark ? '🌙' : '☀️';
+  document.getElementById('twDark').classList.toggle('on', dark);
+});
+
+/* ═══ DEMO TABS ═══════════════════════════════════════════════════ */
+function showDemo(btn, view) {
+  document.querySelectorAll('.demo-tab').forEach(t => t.classList.remove('act'));
+  btn.classList.add('act');
+  const sc = document.getElementById('demoScreen');
+  sc.style.opacity = '0';
+  sc.style.transform = 'translateY(8px)';
+  setTimeout(() => {
+    if (view === 'semana') sc.innerHTML = buildSemana();
+    else if (view === 'hoy') sc.innerHTML = buildHoy();
+    else sc.innerHTML = buildMes();
+    sc.style.transition = 'opacity .3s ease, transform .3s ease';
+    sc.style.opacity = '1';
+    sc.style.transform = 'none';
+  }, 160);
+}
+
+function buildSemana() {
+  const cells = [
+    // [mon, tue, wed, thu, fri]  0=empty
+    [{c:'cp',s:'sp',n:'Consulta',r:'Oficina'},0,0,{c:'cb',s:'sb',n:'Ing. Transporte',r:'R1-202'},0],
+    [{c:'cp',s:'sp',n:'Consulta',r:''},  {c:'cb',s:'sb',n:'Ing. Transporte',r:'OC-05'},0,{c:'cb',s:'sb',n:'Ing. Transporte',r:'R1-202'},0],
+    [{c:'cv',s:'sv',n:'Hormigón Armado',r:'D-205'},{c:'cb',s:'sb',n:'Ing. Transporte',r:'OC-05'},0,0,{c:'cg',s:'sg2',n:'Geotecnia',r:'Lab-03'}],
+    [{c:'cv',s:'sv',n:'Hormigón Armado',r:'D-205'},0,{c:'cr',s:'sr2',n:'Evaluación',r:'D-201'},0,{c:'cg',s:'sg2',n:'Geotecnia',r:'Lab-03'}],
+    ['L','L','L','L','L'],
+    [0,0,{c:'ca',s:'sa',n:'Estadística',r:'A-301'},{c:'cv',s:'sv',n:'Diseño Sismorres.',r:'Oficina'},0],
+    [0,{c:'cb',s:'sb',n:'Ing. Transporte',r:'OC-05'},0,0,{c:'cg',s:'sg2',n:'Geotecnia',r:'Lab-03'}],
+  ];
+  const times = ['08:30','09:40','10:50','12:00','13:10','14:30','15:40'];
+  const ends  = ['09:30','10:40','11:50','13:00','14:30','15:30','16:40'];
+  const days  = ['LUN 20','MAR 21','MIÉ 22','JUE 23','VIE 24'];
+
+  let h = `<div style="padding:18px 20px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;color:rgba(255,255,255,.65);">Semana del 19 – 23 Mayo · 2025</div>
+      <div style="display:flex;gap:6px;">
+        <button style="background:rgba(124,106,247,.12);border:1px solid rgba(124,106,247,.25);border-radius:8px;padding:4px 13px;font-size:12px;color:#a78bfa;cursor:pointer;font-family:inherit;">← Ant.</button>
+        <button style="background:rgba(124,106,247,.12);border:1px solid rgba(124,106,247,.25);border-radius:8px;padding:4px 13px;font-size:12px;color:#a78bfa;cursor:pointer;font-family:inherit;">Sig. →</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:50px repeat(5,1fr);gap:5px;margin-bottom:5px;">
+      <div></div>`;
+  days.forEach((d,i) => { h += `<div style="text-align:center;font-size:10px;font-weight:700;color:${i===0?'#a78bfa':'rgba(255,255,255,.35)'};letter-spacing:.05em;padding:4px 0;">${d}</div>`; });
+  h += `</div>`;
+  cells.forEach((row, ri) => {
+    h += `<div style="display:grid;grid-template-columns:50px repeat(5,1fr);gap:5px;margin-bottom:5px;">
+      <div style="font-size:9px;color:rgba(255,255,255,.22);text-align:right;padding-right:6px;padding-top:6px;line-height:1.4;">${times[ri]}<br>${ends[ri]}</div>`;
+    row.forEach(c => {
+      if (c === 0) {
+        h += `<div style="border-radius:8px;min-height:52px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.04);"></div>`;
+      } else if (c === 'L') {
+        h += `<div style="border-radius:8px;min-height:52px;background:rgba(148,163,184,.1);position:relative;overflow:hidden;padding:6px 7px;"><div style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:8px 0 0 8px;background:#94a3b8;"></div><div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.3);">Almuerzo</div></div>`;
+      } else {
+        h += `<div class="${c.c}" style="border-radius:8px;min-height:52px;position:relative;overflow:hidden;padding:6px 7px;"><div class="sc-stripe ${c.s}" style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:8px 0 0 8px;background:"></div><div style="font-size:9px;font-weight:700;color:#fff;line-height:1.3;">${c.n}</div>${c.r?`<div style="font-size:8px;color:rgba(255,255,255,.5);">${c.r}</div>`:''}</div>`;
+      }
+    });
+    h += `</div>`;
+  });
+  h += `</div>`;
+  return h;
+}
+
+function buildHoy() {
+  const items = [
+    {t:'08:30',e:'09:30',n:'Consulta Dis. Sismorresistente',s:'Oficina',col:'#f472b6',done:true},
+    {t:'09:40',e:'10:40',n:'Hormigón Armado',s:'D-205',col:'#8b5cf6',done:true},
+    {t:'10:50',e:'11:50',n:'Hormigón Armado',s:'D-205',col:'#8b5cf6',now:true,pct:65},
+    {t:'12:00',e:'13:00',n:'Evaluación Unidad 3',s:'D-201',col:'#ef4444'},
+    {t:'13:10',e:'14:30',n:'Almuerzo',s:'',col:'#94a3b8'},
+    {t:'14:30',e:'15:30',n:'Geotecnia',s:'Lab-03',col:'#10b981'},
+    {t:'15:40',e:'16:40',n:'Ing. Transporte',s:'OC-05',col:'#0ea5e9'},
+  ];
+  let h = `<div style="padding:22px 26px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;">
+      <div>
+        <div style="font-size:10.5px;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.3);text-transform:uppercase;margin-bottom:3px;">Hoy</div>
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;color:#fff;">Lunes, 20 Mayo</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:11px;color:rgba(255,255,255,.35);">Progreso del día</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:5px;">
+          <div style="width:110px;height:6px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;"><div style="height:100%;width:42%;background:linear-gradient(90deg,#7c6af7,#38bdf8);border-radius:999px;"></div></div>
+          <div style="font-size:13px;font-weight:700;color:#a78bfa;">42%</div>
+        </div>
+      </div>
+    </div>`;
+  items.forEach(item => {
+    const isNow = !!item.now, done = !!item.done;
+    h += `<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:5px;padding:10px 12px;border-radius:12px;background:${isNow?'rgba(124,106,247,.1)':'transparent'};border:1px solid ${isNow?'rgba(124,106,247,.28)':'transparent'};">
+      <div style="text-align:right;width:56px;flex-shrink:0;">
+        <div style="font-size:11px;font-weight:700;color:${isNow?'#a78bfa':done?'rgba(255,255,255,.25)':'rgba(255,255,255,.55)'};">${item.t}</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.2);">${item.e}</div>
+      </div>
+      <div style="width:3px;background:${done?'rgba(255,255,255,.12)':item.col};border-radius:4px;align-self:stretch;flex-shrink:0;box-shadow:${isNow?`0 0 10px ${item.col}`:''};"></div>
+      <div style="flex:1;">
+        <div style="font-size:13.5px;font-weight:700;color:${done?'rgba(255,255,255,.28)':isNow?'#fff':'rgba(255,255,255,.8)'};display:flex;align-items:center;flex-wrap:wrap;gap:8px;">
+          ${item.n}${isNow?'<span style="background:rgba(124,106,247,.22);border:1px solid rgba(124,106,247,.42);border-radius:999px;padding:2px 9px;font-size:10px;color:#a78bfa;font-weight:700;">Ahora</span>':''}
+        </div>
+        ${item.s?`<div style="font-size:11px;color:rgba(255,255,255,.28);margin-top:2px;">${item.s}</div>`:''}
+        ${isNow&&item.pct?`<div style="margin-top:9px;height:4px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;"><div style="height:100%;width:${item.pct}%;background:linear-gradient(90deg,${item.col},#38bdf8);border-radius:999px;"></div></div><div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:4px;">Faltan ~21 min</div>`:''}
+      </div>
+    </div>`;
+  });
+  h += `</div>`;
+  return h;
+}
+
+function buildMes() {
+  const dayNames = ['LUN','MAR','MIÉ','JUE','VIE','SAB','DOM'];
+  // Mayo 2025 starts on Thursday (index 3), so pad 3 empty cells
+  const evts = {
+    7:[{col:'#ef4444',t:'Evaluación Hormigón'}],
+    12:[{col:'#f472b6',t:'Entrega Informe'}],
+    15:[{col:'#8b5cf6',t:'Prueba Geotecnia'}],
+    20:[{col:'#7c6af7',t:'Hoy'}],
+    22:[{col:'#fbbf24',t:'Examen Final'}],
+    28:[{col:'#10b981',t:'Entrega Proyecto'}],
+    30:[{col:'#0ea5e9',t:'Consulta Oficial'}],
+  };
+  const cells = [null,null,null,...Array.from({length:31},(_,i)=>i+1)];
+  const rows = [];
+  for (let r=0; r<Math.ceil(cells.length/7); r++) rows.push(cells.slice(r*7,(r+1)*7));
+
+  let h = `<div style="padding:18px 20px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:800;color:#fff;">Mayo 2025</div>
+      <div style="display:flex;gap:6px;">
+        <button style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:4px 12px;font-size:12px;color:rgba(255,255,255,.4);cursor:pointer;font-family:inherit;">←</button>
+        <button style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:4px 12px;font-size:12px;color:rgba(255,255,255,.4);cursor:pointer;font-family:inherit;">→</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:6px;">
+      ${dayNames.map(d=>`<div style="text-align:center;font-size:9.5px;font-weight:700;color:rgba(255,255,255,.28);letter-spacing:.06em;padding:3px 0;">${d}</div>`).join('')}
+    </div>`;
+  rows.forEach(row => {
+    h += `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px;">`;
+    row.forEach(n => {
+      if (!n) { h += `<div></div>`; return; }
+      const ev = evts[n];
+      const today = n===20;
+      h += `<div style="border-radius:8px;padding:6px 5px;min-height:58px;background:${today?'rgba(124,106,247,.18)':'rgba(255,255,255,.025)'};border:1px solid ${today?'rgba(124,106,247,.4)':'rgba(255,255,255,.05)'};">
+        <div style="font-size:11px;font-weight:700;color:${today?'#a78bfa':'rgba(255,255,255,.5)'};margin-bottom:3px;">${n}</div>
+        ${ev?ev.map(e=>`<div style="background:${e.col}22;border-left:2.5px solid ${e.col};border-radius:3px;padding:2px 4px;font-size:8px;font-weight:700;color:${e.col};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px;">${e.t}</div>`).join(''):''}
+      </div>`;
+    });
+    h += `</div>`;
+  });
+  h += `</div>`;
+  return h;
+}
+
+/* ═══ SCROLL ANIMATIONS ═══════════════════════════════════════════ */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+}, { threshold: 0.12 });
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+/* ═══ TWEAKS ═══════════════════════════════════════════════════════ */
+window.addEventListener('message', e => {
+  if (e.data?.type === '__activate_edit_mode')   document.getElementById('tweaks').classList.add('open');
+  if (e.data?.type === '__deactivate_edit_mode') document.getElementById('tweaks').classList.remove('open');
+});
+window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+
+function closeTweaks() {
+  document.getElementById('tweaks').classList.remove('open');
+  window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*');
+}
+function toggleTweak(el, key) {
+  el.classList.toggle('on');
+  if (key === 'dark') {
+    dark = el.classList.contains('on');
+    html.setAttribute('data-theme', dark ? 'dark' : 'light');
+    themeBtn.textContent = dark ? '🌙' : '☀️';
+  } else if (key === 'glow') {
+    const on = el.classList.contains('on');
+    document.querySelectorAll('.btn-primary').forEach(b => {
+      b.style.boxShadow = on ? '' : 'none';
+    });
+  } else if (key === 'anim') {
+    const on = el.classList.contains('on');
+    document.querySelectorAll('.fade-up').forEach(el => el.style.transition = on ? '' : 'none');
+  }
+}
+function setAccent(color, glow, sw) {
+  document.querySelectorAll('.tw-sw').forEach(s => s.classList.remove('sel'));
+  sw.classList.add('sel');
+  document.documentElement.style.setProperty('--acc', color);
+  document.documentElement.style.setProperty('--glow', glow);
+  document.documentElement.style.setProperty('--bdr2', color.replace('#','rgba(').replace(/(..)(..)(..)$/,(m,r,g,b)=>`${parseInt(r,16)},${parseInt(g,16)},${parseInt(b,16)},.28)`));
+}
+
+/* ═══ INIT ═══════════════════════════════════════════════════════ */
+showDemo(document.querySelector('.demo-tab'), 'semana');
+</script>
+</body>
+</html>
