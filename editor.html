@@ -5458,6 +5458,49 @@ if (isBubbleMode) document.body.classList.add('is-bubble-mode');
 // sincroniza con el archivo de datos a través de electronAPI.
 // El shim es SÍNCRONO para las lecturas (datos cargados de forma asíncrona
 // en INIT) y ASÍNCRONO para las escrituras (fire-and-forget).
+// ──── SUPABASE CLOUD SYNC ────────────────────────────────────────────
+// Solo activo en web cuando el usuario tiene sesión. Fire-and-forget en writes;
+// el init precarga todos los datos de la nube en localStorage antes de renderizar.
+const _SUPABASE_URL  = 'https://fwlotorqfujhziojocey.supabase.co';
+const _SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3bG90b3JxZnVqaHppb2pvY2V5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzNzYxNDQsImV4cCI6MjA5NDk1MjE0NH0.RoDOyNUryUqRBVMjbIyEEmL7yU1rJDCLzWx9eKThnrI';
+let _sbClient  = null;
+let _sbUserId  = null;
+const _cloudSync = {
+  async init() {
+    if (isElectron) return;
+    try {
+      const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
+      _sbClient = createClient(_SUPABASE_URL, _SUPABASE_ANON);
+      const { data: { session } } = await _sbClient.auth.getSession();
+      if (!session) return;
+      _sbUserId = session.user.id;
+      const { data, error } = await _sbClient
+        .from('user_data').select('key, value').eq('user_id', _sbUserId);
+      if (error) { console.warn('[cloudSync] load error:', error); return; }
+      if (data && data.length > 0) {
+        data.forEach(({ key, value }) => {
+          if (value === null) localStorage.removeItem(key);
+          else localStorage.setItem(key, value);
+        });
+        console.log(`[cloudSync] ${data.length} claves cargadas desde la nube`);
+      }
+    } catch(e) { console.warn('[cloudSync] init fallido:', e); }
+  },
+  set(key, value) {
+    if (!_sbClient || !_sbUserId) return;
+    _sbClient.from('user_data')
+      .upsert({ user_id: _sbUserId, key, value: String(value), updated_at: new Date().toISOString() },
+              { onConflict: 'user_id,key' })
+      .then(({ error }) => { if (error) console.warn('[cloudSync] set error:', error); });
+  },
+  remove(key) {
+    if (!_sbClient || !_sbUserId) return;
+    _sbClient.from('user_data')
+      .delete().eq('user_id', _sbUserId).eq('key', key)
+      .then(({ error }) => { if (error) console.warn('[cloudSync] remove error:', error); });
+  }
+};
+
 let _electronStore = {};  // caché en memoria; poblado en init asíncrono
 
 const _storage = isElectron ? {
@@ -5480,7 +5523,11 @@ const _storage = isElectron ? {
       window.electronAPI.notifyDataChanged();
     }
   }
-} : localStorage;
+} : {
+  getItem(key)        { return localStorage.getItem(key); },
+  setItem(key, value) { localStorage.setItem(key, value); _cloudSync.set(key, value); },
+  removeItem(key)     { localStorage.removeItem(key); _cloudSync.remove(key); }
+};
 
 // ===================== DATA =====================
 let SLOTS = [
@@ -11427,6 +11474,9 @@ function _renderPalettePicker() {
     } catch(e) {
       console.warn('No se pudieron cargar datos de Electron:', e);
     }
+  } else {
+    // En web: precargar datos desde Supabase si hay sesión activa
+    await _cloudSync.init();
   }
 
   loadThemeFromStorage();
