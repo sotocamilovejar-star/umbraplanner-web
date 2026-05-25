@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es" data-theme="dark">
 <head>
 <meta charset="UTF-8">
@@ -298,7 +298,7 @@ input::placeholder{color:var(--txt3);}
     btn.disabled = true; btn.textContent = 'Entrando...'
     try {
       await signIn(email, pass)
-      window.location.href = '/cronos-web/app.html'
+      window.location.href = '/app.html'
     } catch (err) {
       showMsg(translateError(err.message), 'error')
       btn.disabled = false; btn.textContent = 'Iniciar sesión →'
