@@ -4900,14 +4900,14 @@ body.view-hoy .tb-week-nav  { display: none !important; }
 
     <!-- Acciones permanentes -->
     <div class="tb-actions">
-      <button class="tb-action-btn tb-action-btn--primary" onclick="openWallpaperModal()" title="Personalizar y exportar PNG"><span class="tb-action-icon">🖼</span>Guardar PNG</button>
+      <button id="btn-export-png" class="tb-action-btn tb-action-btn--primary" onclick="openWallpaperModal()" title="Personalizar y exportar PNG"><span class="tb-action-icon">🖼</span>Guardar PNG</button>
 
       <button class="tb-icon-btn" id="btn-hints-toggle" onclick="toggleHintsBar()" title="Atajos de teclado" style="font-weight:700;">?</button>
 
       <div class="tb-overflow-wrap">
         <button class="tb-icon-btn" id="btn-overflow" onclick="toggleOverflowMenu(event)" title="Más opciones" style="font-size:16px;letter-spacing:-1px;">···</button>
         <div class="tb-overflow-menu" id="tb-overflow-menu">
-          <button class="tb-of-item" onclick="closeOverflowMenu();openNotifModal()"><span class="tb-of-icon">🔔</span>Notificaciones</button>
+          <button id="btn-notif-menu" class="tb-of-item" onclick="closeOverflowMenu();openNotifModal()"><span class="tb-of-icon">🔔</span>Notificaciones</button>
           <button class="tb-of-item" onclick="closeOverflowMenu();openSlotsModal()"><span class="tb-of-icon">⏱</span>Franjas de tiempo</button>
           <button class="tb-of-item" onclick="closeOverflowMenu();toggleBubble()"><span class="tb-of-icon">◉</span>Burbuja flotante</button>
           <div class="tb-of-divider"></div>
@@ -11513,6 +11513,41 @@ function _renderPalettePicker() {
     </button>`).join('');
 }
 
+// ===================== PLAN / FREEMIUM =====================
+function _applyPlanRestrictions(plan) {
+  const isPremium = (plan === 'premium' || plan === 'student');
+  // Burbuja flotante: solo premium
+  const btnBubble = document.getElementById('btn-bubble');
+  if (btnBubble) btnBubble.style.display = isPremium ? '' : 'none';
+  // Exportar PNG: solo premium
+  const btnExport = document.getElementById('btn-export-png');
+  if (btnExport) {
+    if (!isPremium) {
+      btnExport.title = 'Guardar PNG — Plan Premium';
+      btnExport.onclick = (e) => { e.preventDefault(); _showUpgradePrompt('export'); };
+    }
+  }
+  // Notificaciones: solo premium
+  const btnNotif = document.getElementById('btn-notif-menu');
+  if (btnNotif) {
+    if (!isPremium) {
+      btnNotif.onclick = (e) => { closeOverflowMenu(); _showUpgradePrompt('notif'); };
+    }
+  }
+  if (!isPremium) console.log('[plan] usuario en plan free — features premium bloqueadas');
+}
+
+function _showUpgradePrompt(feature) {
+  const labels = {
+    export: 'Exportar PNG',
+    notif:  'Notificaciones de clases',
+    bubble: 'Burbuja flotante',
+  };
+  const name = labels[feature] || feature;
+  // Por ahora: alert simple. Después: modal de upgrade con link a Stripe.
+  alert(`✨ ${name} está disponible en el plan Premium.\n\nPrueba Premium gratis por 14 días desde umbraplanner.app`);
+}
+
 // ===================== INIT =====================
 (async function init() {
   // En Electron: cargar todos los datos del archivo antes de renderizar
@@ -11526,9 +11561,14 @@ function _renderPalettePicker() {
       console.warn('No se pudieron cargar datos de Electron:', e);
     }
     await _cloudSync.init(); // Registra listener OAuth umbraplanner://
+    // Leer plan efectivo desde main process
+    window._userPlan = await window.electronAPI.getPlan();
+    console.log('[plan] efectivo:', window._userPlan);
+    _applyPlanRestrictions(window._userPlan);
   } else {
     // En web: precargar datos desde Supabase si hay sesión activa
     await _cloudSync.init();
+    window._userPlan = 'free'; // Web siempre free por ahora
   }
 
   loadThemeFromStorage();
