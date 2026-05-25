@@ -2020,6 +2020,39 @@ h1 {
 }
 .btn-slots-save:hover { filter: brightness(1.12); }
 
+/* ---- UPGRADE MODAL ---- */
+#upgrade-modal-overlay { z-index: 10001; }
+#upgrade-modal-box { max-width: 400px; padding: 0; overflow: hidden; border-radius: 16px; }
+.upgrade-header {
+  background: linear-gradient(135deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 55%, #7c6af7) 100%);
+  padding: 28px 28px 22px; text-align: center;
+}
+.upgrade-header-icon  { font-size: 30px; margin-bottom: 6px; }
+.upgrade-header-title { font-size: 20px; font-weight: 700; color: #fff; letter-spacing: -0.4px; }
+.upgrade-header-price { font-size: 13px; color: rgba(255,255,255,0.78); margin-top: 3px; }
+.upgrade-body { padding: 22px 24px 20px; }
+.upgrade-features-label { font-size: 11px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+.upgrade-feature { display: flex; align-items: center; gap: 10px; padding: 7px 0; color: var(--text); font-size: 13px; border-bottom: 1px solid var(--border); }
+.upgrade-feature:last-child { border-bottom: none; }
+.upgrade-feature-icon { font-size: 15px; width: 20px; text-align: center; }
+.upgrade-btn-primary {
+  width: 100%; margin-top: 18px; padding: 12px; background: var(--accent);
+  border: none; border-radius: 10px; color: #fff; font-size: 14px; font-weight: 700;
+  cursor: pointer; box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 35%, transparent);
+  transition: opacity .15s;
+}
+.upgrade-btn-primary:hover { opacity: .88; }
+.upgrade-btn-verify {
+  width: 100%; margin-top: 8px; padding: 9px; background: transparent;
+  border: 1px solid var(--border); border-radius: 10px; color: var(--text-mid);
+  font-size: 12px; cursor: pointer; transition: border-color .15s;
+}
+.upgrade-btn-verify:hover { border-color: var(--accent); }
+.upgrade-btn-dismiss {
+  width: 100%; margin-top: 6px; padding: 7px; background: transparent;
+  border: none; color: var(--text-dim); font-size: 12px; cursor: pointer;
+}
+
 /* ---- TOAST / LOADING ---- */
 #toast {
   position: fixed; bottom: 24px; right: 24px;
@@ -11515,37 +11548,73 @@ function _renderPalettePicker() {
 
 // ===================== PLAN / FREEMIUM =====================
 function _applyPlanRestrictions(plan) {
-  const isPremium = (plan === 'premium' || plan === 'student');
-  // Burbuja flotante: solo premium
+  const isPro = (plan === 'pro');
+  // Burbuja flotante: solo Pro
   const btnBubble = document.getElementById('btn-bubble');
-  if (btnBubble) btnBubble.style.display = isPremium ? '' : 'none';
-  // Exportar PNG: solo premium
+  if (btnBubble) btnBubble.style.display = isPro ? '' : 'none';
+  // Exportar PNG: solo Pro
   const btnExport = document.getElementById('btn-export-png');
   if (btnExport) {
-    if (!isPremium) {
-      btnExport.title = 'Guardar PNG — Plan Premium';
-      btnExport.onclick = (e) => { e.preventDefault(); _showUpgradePrompt('export'); };
+    if (!isPro) {
+      btnExport.title = 'Guardar PNG — Plan Pro';
+      btnExport.onclick = (e) => { e.preventDefault(); openUpgradeModal('export'); };
+    } else {
+      btnExport.title = 'Personalizar y exportar PNG';
+      btnExport.onclick = () => openWallpaperModal();
     }
   }
-  // Notificaciones: solo premium
+  // Notificaciones: solo Pro
   const btnNotif = document.getElementById('btn-notif-menu');
   if (btnNotif) {
-    if (!isPremium) {
-      btnNotif.onclick = (e) => { closeOverflowMenu(); _showUpgradePrompt('notif'); };
+    if (!isPro) {
+      btnNotif.onclick = () => { closeOverflowMenu(); openUpgradeModal('notif'); };
+    } else {
+      btnNotif.onclick = () => { closeOverflowMenu(); openNotifModal(); };
     }
   }
-  if (!isPremium) console.log('[plan] usuario en plan free — features premium bloqueadas');
+  if (!isPro) console.log('[plan] free — features Pro bloqueadas');
 }
 
-function _showUpgradePrompt(feature) {
-  const labels = {
-    export: 'Exportar PNG',
-    notif:  'Notificaciones de clases',
-    bubble: 'Burbuja flotante',
-  };
-  const name = labels[feature] || feature;
-  // Por ahora: alert simple. Después: modal de upgrade con link a Stripe.
-  alert(`✨ ${name} está disponible en el plan Premium.\n\nPrueba Premium gratis por 14 días desde umbraplanner.app`);
+function openUpgradeModal(feature) {
+  document.getElementById('upgrade-modal-overlay').style.display = 'flex';
+}
+
+function closeUpgradeModal() {
+  document.getElementById('upgrade-modal-overlay').style.display = 'none';
+  const btn = document.getElementById('btn-verify-purchase');
+  if (btn) { btn.textContent = 'Ya pagué → Verificar compra'; btn.disabled = false; }
+}
+
+async function _openCheckout() {
+  const base = 'https://umbraplanner.lemonsqueezy.com/checkout/buy/8ada2e04-ff8f-4b97-ad9b-7fea886d5c25';
+  let url = base;
+  if (isElectron && window.electronAPI.getDeviceId) {
+    try {
+      const deviceId = await window.electronAPI.getDeviceId();
+      if (deviceId) url += `?checkout[custom][device_id]=${encodeURIComponent(deviceId)}`;
+    } catch {}
+  }
+  if (isElectron) window.electronAPI.openAuthUrl(url);
+  else window.open(url, '_blank');
+}
+
+async function _verifyPurchase() {
+  if (!isElectron) return;
+  const btn = document.getElementById('btn-verify-purchase');
+  if (btn) { btn.textContent = 'Verificando...'; btn.disabled = true; }
+  try {
+    const plan = await window.electronAPI.refreshPlan();
+    window._userPlan = plan;
+    if (plan === 'pro') {
+      _applyPlanRestrictions(plan);
+      closeUpgradeModal();
+      showToast('✨ ¡Plan Pro activado!');
+    } else {
+      if (btn) { btn.textContent = 'Pago no encontrado. Intenta en unos minutos.'; btn.disabled = false; }
+    }
+  } catch {
+    if (btn) { btn.textContent = 'Error al verificar. Intenta de nuevo.'; btn.disabled = false; }
+  }
 }
 
 // ===================== INIT =====================
@@ -12374,6 +12443,27 @@ document.addEventListener('mousemove', e=>{ if(_cpkDragging) cpkGradientMove(e);
     <div class="modal-buttons">
       <button class="btn btn-ghost" onclick="closeNotifModal()">Cancelar</button>
       <button class="btn btn-primary" onclick="saveNotifConfig()">Guardar</button>
+    </div>
+  </div>
+</div>
+<!-- ── Modal Upgrade a Pro ──────────────────────────────────────────── -->
+<div class="modal-overlay" id="upgrade-modal-overlay" style="display:none" onclick="if(event.target===this)closeUpgradeModal()">
+  <div class="modal-box" id="upgrade-modal-box">
+    <div class="upgrade-header">
+      <div class="upgrade-header-icon">✨</div>
+      <div class="upgrade-header-title">UmbraPlanner Pro</div>
+      <div class="upgrade-header-price">$3 USD / mes · Cancela cuando quieras</div>
+    </div>
+    <div class="upgrade-body">
+      <div class="upgrade-features-label">Incluye</div>
+      <div class="upgrade-feature"><span class="upgrade-feature-icon">◉</span>Burbuja flotante always-on-top</div>
+      <div class="upgrade-feature"><span class="upgrade-feature-icon">🖼</span>Exportar PNG glassmorphism</div>
+      <div class="upgrade-feature"><span class="upgrade-feature-icon">🔔</span>Notificaciones de clases y eventos</div>
+      <div class="upgrade-feature"><span class="upgrade-feature-icon">▦</span>Multi-horario sin límite</div>
+      <div class="upgrade-feature"><span class="upgrade-feature-icon">☁️</span>Sincronización en la nube</div>
+      <button class="upgrade-btn-primary" id="btn-upgrade-checkout" onclick="_openCheckout()">Actualizar a Pro — $3/mes</button>
+      <button class="upgrade-btn-verify" id="btn-verify-purchase" onclick="_verifyPurchase()">Ya pagué → Verificar compra</button>
+      <button class="upgrade-btn-dismiss" onclick="closeUpgradeModal()">Ahora no</button>
     </div>
   </div>
 </div>
