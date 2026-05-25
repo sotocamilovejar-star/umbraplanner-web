@@ -1,7 +1,6 @@
 {
-  "buildCommand": "",
-  "outputDirectory": ".",
   "framework": null,
+  "outputDirectory": ".",
   "cleanUrls": true,
   "trailingSlash": false
 }
