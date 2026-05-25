@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CronosPlanner — Tu horario universitario, rediseñado</title>
+<title>UmbraPlanner — Tu horario universitario, rediseñado</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
@@ -405,28 +405,64 @@ footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:52px 6%;dis
 ═══════════════════════════════════════════════════════════════════ -->
 <nav class="navbar">
   <a href="#" class="nav-logo">
-    <svg width="32" height="32" viewBox="0 0 100 100" fill="none">
+    <svg width="32" height="32" viewBox="0 0 200 200" fill="none">
       <defs>
-        <radialGradient id="lg_bg" cx="36%" cy="28%" r="82%">
-          <stop offset="0%" stop-color="#a78bfa"/>
-          <stop offset="100%" stop-color="#4c1d95"/>
-        </radialGradient>
-        <linearGradient id="lg_hg" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stop-color="rgba(220,240,255,0.12)"/>
-          <stop offset="100%" stop-color="rgba(150,210,255,0.06)"/>
+        <filter id="upAlp" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="22"/></filter>
+        <filter id="upDlp" x="-120%" y="-120%" width="340%" height="340%"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="upMlp" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="upSlp" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="0.9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="upGlp" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="upHlp" x="-120%" y="-120%" width="340%" height="340%"><feGaussianBlur stdDeviation="2.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="upPHlp" x="-300%" y="-300%" width="700%" height="700%"><feGaussianBlur stdDeviation="5"/></filter>
+        <filter id="upPClp" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <linearGradient id="upGUlp" x1="0" y1="4" x2="0" y2="174" gradientUnits="userSpaceOnUse">
+          <stop offset="0%"   stop-color="rgba(255,255,255,0.92)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0.80)"/>
         </linearGradient>
-        <clipPath id="lg_cp"><path d="M20,17 C15,12 15,12 22,12 L78,12 C85,12 85,12 80,17 L59,43 C57,45 57,45 57,48 L57,52 C57,55 57,55 59,57 L80,83 C85,88 85,88 78,88 L22,88 C15,88 15,88 20,83 L41,57 C43,55 43,55 43,52 L43,48 C43,45 43,45 41,43 L20,17 Z"/></clipPath>
+        <linearGradient id="upGHlp" x1="100" y1="110" x2="71" y2="139" gradientUnits="userSpaceOnUse">
+          <stop offset="0%"   stop-color="#7c6af7" stop-opacity="1"/>
+          <stop offset="60%"  stop-color="#7c6af7" stop-opacity="0.8"/>
+          <stop offset="100%" stop-color="#7c6af7" stop-opacity="0"/>
+        </linearGradient>
+        <radialGradient id="upGFlp" cx="100" cy="152" r="56" gradientUnits="userSpaceOnUse">
+          <stop offset="0%"   stop-color="rgba(124,106,247,0.10)"/>
+          <stop offset="100%" stop-color="rgba(124,106,247,0)"/>
+        </radialGradient>
+        <clipPath id="upCUlp"><path d="M 52 12 L 52 110 A 48 48 0 0 0 148 110 L 148 12 Z"/></clipPath>
       </defs>
-      <rect width="100" height="100" rx="22" fill="var(--acc)"/>
-      <rect width="100" height="50" rx="22" fill="rgba(255,255,255,0.08)"/>
-      <path d="M20,17 C15,12 15,12 22,12 L78,12 C85,12 85,12 80,17 L59,43 C57,45 57,45 57,48 L57,52 C57,55 57,55 59,57 L80,83 C85,88 85,88 78,88 L22,88 C15,88 15,88 20,83 L41,57 C43,55 43,55 43,52 L43,48 C43,45 43,45 41,43 L20,17 Z" fill="white" opacity="0.95"/>
-      <g clip-path="url(#lg_cp)"><rect width="100" height="100" fill="url(#lg_hg)"/></g>
-      <path d="M28,19 C23,29 21,40 23,52" fill="none" stroke="white" stroke-width="3.8" stroke-linecap="round" opacity="0.55"/>
-      <ellipse cx="65" cy="20" rx="5" ry="2.8" fill="white" opacity="0.22" transform="rotate(-30,65,20)"/>
-      <path d="M32,33 Q50,36.5 68,33 L57,43 L43,43 Z" fill="rgba(76,29,149,0.62)" opacity="0.8"/>
-      <path d="M28,19 C23,29 21,40 23,52" fill="none" stroke="white" stroke-width="3.8" stroke-linecap="round" opacity="0.55"/>
+      <ellipse cx="100" cy="130" rx="64" ry="52" fill="rgba(124,106,247,0.08)" filter="url(#upAlp)"/>
+      <rect x="0" y="0" width="200" height="200" fill="url(#upGFlp)" clip-path="url(#upCUlp)"/>
+      <circle cx="100" cy="110" r="56" stroke="rgba(255,255,255,0.38)" stroke-width="3" filter="url(#upGlp)"/>
+      <path d="M 44 12 L 44 110 A 56 56 0 0 0 156 110 L 156 12" stroke="url(#upGUlp)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="100" cy="110" r="48" stroke="#7c6af7" stroke-width="16" fill="none" opacity="0.16" filter="url(#upDlp)"/>
+      <circle cx="100" cy="110" r="48" stroke="#7c6af7" stroke-width="5"  fill="none" opacity="0.52" filter="url(#upMlp)"/>
+      <circle cx="100" cy="110" r="48" stroke="#7c6af7" stroke-width="1.2" fill="none" opacity="0.90" filter="url(#upSlp)"/>
+      <g stroke="rgba(255,255,255,0.38)" stroke-width="1.2" stroke-linecap="round">
+        <line x1="141.6" y1="134.0" x2="136.4" y2="131.0"/>
+        <line x1="124.0" y1="151.6" x2="121.0" y2="146.4"/>
+        <line x1="100.0" y1="158.0" x2="100.0" y2="152.0"/>
+        <line x1="58.4"  y1="134.0" x2="63.6"  y2="131.0"/>
+      </g>
+      <line x1="76.0" y1="151.6" x2="79.0" y2="146.4" stroke="rgba(124,106,247,0.72)" stroke-width="1.3" stroke-linecap="round"/>
+      <g stroke="rgba(255,255,255,0.24)" stroke-width="1.1" stroke-linecap="round">
+        <line x1="58.4"  y1="86.0"  x2="63.6"  y2="89.0"/>
+        <line x1="76.0"  y1="68.4"  x2="79.0"  y2="73.6"/>
+        <line x1="124.0" y1="68.4"  x2="121.0" y2="73.6"/>
+        <line x1="141.6" y1="86.0"  x2="136.4" y2="89.0"/>
+      </g>
+      <line x1="100.0" y1="62.0" x2="100.0" y2="67.0" stroke="rgba(255,255,255,0.42)" stroke-width="1.4" stroke-linecap="round"/>
+      <g filter="url(#upPHlp)" opacity="0.20"><rect x="94" y="35" width="12" height="19" rx="6" fill="#7c6af7"/></g>
+      <g filter="url(#upMlp)" opacity="0.55"><rect x="94" y="35" width="12" height="8" rx="4" fill="#7c6af7"/><rect x="98" y="43" width="4" height="11" rx="1" fill="#7c6af7"/></g>
+      <g filter="url(#upSlp)"><rect x="94" y="35" width="12" height="8" rx="4" fill="#7c6af7"/><rect x="98" y="43" width="4" height="11" rx="1" fill="#7c6af7"/></g>
+      <rect x="96.5" y="37" width="7" height="3.5" rx="1.75" fill="rgba(255,225,190,0.45)"/>
+      <line x1="100" y1="110" x2="71" y2="139" stroke="#7c6af7" stroke-width="5" stroke-linecap="round" opacity="0.22" filter="url(#upHlp)"/>
+      <line x1="100" y1="110" x2="71" y2="139" stroke="url(#upGHlp)" stroke-width="1.8" stroke-linecap="round" filter="url(#upSlp)"/>
+      <circle cx="100" cy="110" r="8"   fill="#7c6af7" opacity="0.22" filter="url(#upPHlp)"/>
+      <circle cx="100" cy="110" r="5"   fill="#7c6af7" opacity="0.45" filter="url(#upMlp)"/>
+      <circle cx="100" cy="110" r="3"   fill="#7c6af7" filter="url(#upPClp)"/>
+      <circle cx="100" cy="110" r="1.5" fill="rgba(255,228,200,0.95)"/>
     </svg>
-    CronosPlanner
+    UmbraPlanner
   </a>
   <ul class="nav-links">
     <li><a href="#features">Funciones</a></li>
@@ -773,12 +809,64 @@ footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:52px 6%;dis
 <footer>
   <div class="footer-brand">
     <a href="#" class="nav-logo" style="display:inline-flex;margin-bottom:2px;">
-      <svg width="26" height="26" viewBox="0 0 100 100" fill="none">
-        <defs><radialGradient id="ft_bg" cx="36%" cy="28%" r="82%"><stop offset="0%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#4c1d95"/></radialGradient></defs>
-        <rect width="100" height="100" rx="22" fill="var(--acc)"/>
-        <path d="M20,17 C15,12 15,12 22,12 L78,12 C85,12 85,12 80,17 L59,43 C57,45 57,45 57,48 L57,52 C57,55 57,55 59,57 L80,83 C85,88 85,88 78,88 L22,88 C15,88 15,88 20,83 L41,57 C43,55 43,55 43,52 L43,48 C43,45 43,45 41,43 L20,17 Z" fill="white" opacity="0.95"/>
+      <svg width="26" height="26" viewBox="0 0 200 200" fill="none">
+        <defs>
+          <filter id="upAft" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="22"/></filter>
+          <filter id="upDft" x="-120%" y="-120%" width="340%" height="340%"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="upMft" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="upSft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="0.9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="upGft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="upHft" x="-120%" y="-120%" width="340%" height="340%"><feGaussianBlur stdDeviation="2.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="upPHft" x="-300%" y="-300%" width="700%" height="700%"><feGaussianBlur stdDeviation="5"/></filter>
+          <filter id="upPCft" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <linearGradient id="upGUft" x1="0" y1="4" x2="0" y2="174" gradientUnits="userSpaceOnUse">
+            <stop offset="0%"   stop-color="rgba(255,255,255,0.92)"/>
+            <stop offset="100%" stop-color="rgba(255,255,255,0.80)"/>
+          </linearGradient>
+          <linearGradient id="upGHft" x1="100" y1="110" x2="71" y2="139" gradientUnits="userSpaceOnUse">
+            <stop offset="0%"   stop-color="#7c6af7" stop-opacity="1"/>
+            <stop offset="60%"  stop-color="#7c6af7" stop-opacity="0.8"/>
+            <stop offset="100%" stop-color="#7c6af7" stop-opacity="0"/>
+          </linearGradient>
+          <radialGradient id="upGFft" cx="100" cy="152" r="56" gradientUnits="userSpaceOnUse">
+            <stop offset="0%"   stop-color="rgba(124,106,247,0.10)"/>
+            <stop offset="100%" stop-color="rgba(124,106,247,0)"/>
+          </radialGradient>
+          <clipPath id="upCUft"><path d="M 52 12 L 52 110 A 48 48 0 0 0 148 110 L 148 12 Z"/></clipPath>
+        </defs>
+        <ellipse cx="100" cy="130" rx="64" ry="52" fill="rgba(124,106,247,0.08)" filter="url(#upAft)"/>
+        <rect x="0" y="0" width="200" height="200" fill="url(#upGFft)" clip-path="url(#upCUft)"/>
+        <circle cx="100" cy="110" r="56" stroke="rgba(255,255,255,0.38)" stroke-width="3" filter="url(#upGft)"/>
+        <path d="M 44 12 L 44 110 A 56 56 0 0 0 156 110 L 156 12" stroke="url(#upGUft)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="100" cy="110" r="48" stroke="#7c6af7" stroke-width="16" fill="none" opacity="0.16" filter="url(#upDft)"/>
+        <circle cx="100" cy="110" r="48" stroke="#7c6af7" stroke-width="5"  fill="none" opacity="0.52" filter="url(#upMft)"/>
+        <circle cx="100" cy="110" r="48" stroke="#7c6af7" stroke-width="1.2" fill="none" opacity="0.90" filter="url(#upSft)"/>
+        <g stroke="rgba(255,255,255,0.38)" stroke-width="1.2" stroke-linecap="round">
+          <line x1="141.6" y1="134.0" x2="136.4" y2="131.0"/>
+          <line x1="124.0" y1="151.6" x2="121.0" y2="146.4"/>
+          <line x1="100.0" y1="158.0" x2="100.0" y2="152.0"/>
+          <line x1="58.4"  y1="134.0" x2="63.6"  y2="131.0"/>
+        </g>
+        <line x1="76.0" y1="151.6" x2="79.0" y2="146.4" stroke="rgba(124,106,247,0.72)" stroke-width="1.3" stroke-linecap="round"/>
+        <g stroke="rgba(255,255,255,0.24)" stroke-width="1.1" stroke-linecap="round">
+          <line x1="58.4"  y1="86.0"  x2="63.6"  y2="89.0"/>
+          <line x1="76.0"  y1="68.4"  x2="79.0"  y2="73.6"/>
+          <line x1="124.0" y1="68.4"  x2="121.0" y2="73.6"/>
+          <line x1="141.6" y1="86.0"  x2="136.4" y2="89.0"/>
+        </g>
+        <line x1="100.0" y1="62.0" x2="100.0" y2="67.0" stroke="rgba(255,255,255,0.42)" stroke-width="1.4" stroke-linecap="round"/>
+        <g filter="url(#upPHft)" opacity="0.20"><rect x="94" y="35" width="12" height="19" rx="6" fill="#7c6af7"/></g>
+        <g filter="url(#upMft)" opacity="0.55"><rect x="94" y="35" width="12" height="8" rx="4" fill="#7c6af7"/><rect x="98" y="43" width="4" height="11" rx="1" fill="#7c6af7"/></g>
+        <g filter="url(#upSft)"><rect x="94" y="35" width="12" height="8" rx="4" fill="#7c6af7"/><rect x="98" y="43" width="4" height="11" rx="1" fill="#7c6af7"/></g>
+        <rect x="96.5" y="37" width="7" height="3.5" rx="1.75" fill="rgba(255,225,190,0.45)"/>
+        <line x1="100" y1="110" x2="71" y2="139" stroke="#7c6af7" stroke-width="5" stroke-linecap="round" opacity="0.22" filter="url(#upHft)"/>
+        <line x1="100" y1="110" x2="71" y2="139" stroke="url(#upGHft)" stroke-width="1.8" stroke-linecap="round" filter="url(#upSft)"/>
+        <circle cx="100" cy="110" r="8"   fill="#7c6af7" opacity="0.22" filter="url(#upPHft)"/>
+        <circle cx="100" cy="110" r="5"   fill="#7c6af7" opacity="0.45" filter="url(#upMft)"/>
+        <circle cx="100" cy="110" r="3"   fill="#7c6af7" filter="url(#upPCft)"/>
+        <circle cx="100" cy="110" r="1.5" fill="rgba(255,228,200,0.95)"/>
       </svg>
-      CronosPlanner
+      UmbraPlanner
     </a>
     <p>Tu horario universitario, rediseñado. Disponible en web y escritorio para Mac y Windows.</p>
   </div>
@@ -803,7 +891,7 @@ footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:52px 6%;dis
     </div>
   </div>
 </footer>
-<div class="footer-bottom">© 2025 CronosPlanner · Hecho con ☕ para estudiantes</div>
+<div class="footer-bottom">© 2025 UmbraPlanner · Hecho con ☕ para estudiantes</div>
 
 <!-- ═══════════════════════════════════════════════════════════════════
      TWEAKS PANEL
