@@ -4562,7 +4562,7 @@ body.view-hoy .tb-week-nav  { display: none !important; }
     0 0 12px color-mix(in srgb, var(--accent) 35%, transparent),
     0 2px 8px color-mix(in srgb, var(--accent) 20%, transparent);
 }
-#cronos-palette-picker {
+#umbra-palette-picker {
   position: absolute;
   top: 56px;
   left: 8px;
@@ -4577,7 +4577,7 @@ body.view-hoy .tb-week-nav  { display: none !important; }
   box-shadow: 0 8px 36px rgba(0,0,0,0.28), 0 2px 8px rgba(0,0,0,0.12), 0 0 0 1px var(--accent-bd), 0 0 24px color-mix(in srgb,var(--accent) 14%,transparent);
   min-width: 152px;
 }
-.cronos-pal-btn {
+.umbra-pal-btn {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -4591,11 +4591,11 @@ body.view-hoy .tb-week-nav  { display: none !important; }
   width: 100%;
   text-align: left;
 }
-.cronos-pal-btn:hover { background: var(--surface-hov); }
-.cronos-pal-btn.active { background: var(--accent-bg); border-color: var(--accent-bd); box-shadow: 0 0 12px color-mix(in srgb,var(--accent) 22%,transparent); }
-.cronos-pal-btn .cronos-pal-icon { flex-shrink: 0; line-height: 0; display: flex; }
-.cronos-pal-btn .cronos-pal-name { font-size: 12.5px; font-weight: 700; color: var(--text); }
-.cronos-pal-btn.active .cronos-pal-name { color: var(--accent); }
+.umbra-pal-btn:hover { background: var(--surface-hov); }
+.umbra-pal-btn.active { background: var(--accent-bg); border-color: var(--accent-bd); box-shadow: 0 0 12px color-mix(in srgb,var(--accent) 22%,transparent); }
+.umbra-pal-btn .umbra-pal-icon { flex-shrink: 0; line-height: 0; display: flex; }
+.umbra-pal-btn .umbra-pal-name { font-size: 12.5px; font-weight: 700; color: var(--text); }
+.umbra-pal-btn.active .umbra-pal-name { color: var(--accent); }
 
 /* ============================================================
    CRONOS COLOR PICKER
@@ -4923,7 +4923,7 @@ body.view-hoy .tb-week-nav  { display: none !important; }
       <div id="tb-logo-icon" style="flex-shrink:0;line-height:0;display:flex;"></div>
       <span class="tb-title">UmbraPlanner</span>
     </div>
-    <div id="cronos-palette-picker" style="display:none;"></div>
+    <div id="umbra-palette-picker" style="display:none;"></div>
 
     <!-- View switcher -->
     <div class="tb-view-switcher">
@@ -5521,8 +5521,20 @@ const _cloudSync = {
   async init() {
     try {
       const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
-      _sbClient = createClient(_SUPABASE_URL, _SUPABASE_ANON);
       if (isElectron) {
+        // En Electron usar _electronStore como storage para que los tokens sobrevivan reinicios
+        _sbClient = createClient(_SUPABASE_URL, _SUPABASE_ANON, {
+          auth: {
+            storage: {
+              getItem:    (k) => _electronStore[k] ?? null,
+              setItem:    (k, v) => { _electronStore[k] = v; window.electronAPI?.saveData(k, v); },
+              removeItem: (k) => { delete _electronStore[k]; window.electronAPI?.deleteData(k); }
+            },
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: false
+          }
+        });
         window.electronAPI.onAuthCallback(async ({ access_token, refresh_token }) => {
           try {
             const { data, error } = await _sbClient.auth.setSession({ access_token, refresh_token });
@@ -5532,8 +5544,15 @@ const _cloudSync = {
             _cloudSync._updateAvatar(data.session.user);
           } catch(e) { console.warn('[cloudSync] auth callback error:', e); }
         });
+        // Restaurar sesión existente (tokens en _electronStore, cargados antes de init())
+        const { data: { session } } = await _sbClient.auth.getSession();
+        if (session) {
+          _sbUserId = session.user.id;
+          _cloudSync._updateAvatar(session.user);
+        }
         return;
       }
+      _sbClient = createClient(_SUPABASE_URL, _SUPABASE_ANON);
       const { data: { session } } = await _sbClient.auth.getSession();
       if (!session) return;
       _sbUserId = session.user.id;
@@ -9056,7 +9075,7 @@ const CRONOS_WALLPAPER_PRESETS = [
   { id:'desierto',  label:'Desierto',  bg:'linear-gradient(135deg,#fde68a,#f59e0b,#92400e)' },
 ];
 let _cronosWallpaper = (() => {
-  try { return JSON.parse(_storage.getItem('cronos-wallpaper') || 'null'); } catch { return null; }
+  try { return JSON.parse(_storage.getItem('umbra-wallpaper') || 'null'); } catch { return null; }
 })() || { type:'preset', bg: CRONOS_WALLPAPER_PRESETS[0].bg, opacity: 22, blur: 0, panelAlpha: 25 };
 
 // ── Wallpaper Modal ────────────────────────────────────────────────────────────
@@ -9252,7 +9271,7 @@ function openWallpaperModal() {
     const bg = getActiveBg();
     _cronosWallpaper = { type: ws.tab, bg, opacity: ws.opacity, blur: ws.blur, panelAlpha: ws.panelAlpha };
     try {
-      _storage.setItem('cronos-wallpaper', JSON.stringify({
+      _storage.setItem('umbra-wallpaper', JSON.stringify({
         type: ws.tab, bg: ws.tab === 'foto' ? null : bg,
         opacity: ws.opacity, blur: ws.blur, panelAlpha: ws.panelAlpha
       }));
@@ -11523,21 +11542,21 @@ function applyCronosPalette(id, save) {
   if (logoEl) logoEl.innerHTML = makeLogoSVG(pal, 30, 'tb', 'medium', 'full');
   const bubLogoEl = document.getElementById('bub-logo-icon');
   if (bubLogoEl) bubLogoEl.innerHTML = makeLogoSVG(pal, 20, 'bub', 'medium', 'full');
-  if (save !== false) _storage.setItem('cronos-palette', pal.id);
-  const picker = document.getElementById('cronos-palette-picker');
+  if (save !== false) _storage.setItem('umbra-palette', pal.id);
+  const picker = document.getElementById('umbra-palette-picker');
   if (picker && picker.style.display !== 'none') _renderPalettePicker();
   // Re-renderizar miniaturas del sidebar para reflejar el nuevo acento
   if (typeof renderScheduleStrip === 'function') renderScheduleStrip();
 }
 
 function loadCronosPalette() {
-  const saved = _storage.getItem('cronos-palette') || 'violeta';
+  const saved = _storage.getItem('umbra-palette') || 'violeta';
   applyCronosPalette(saved, false);
 }
 
 function togglePalettePicker(e) {
   if (e) e.stopPropagation();
-  const picker = document.getElementById('cronos-palette-picker');
+  const picker = document.getElementById('umbra-palette-picker');
   if (!picker) return;
   if (picker.style.display !== 'none') {
     picker.style.display = 'none';
@@ -11548,14 +11567,14 @@ function togglePalettePicker(e) {
 }
 
 function _renderPalettePicker() {
-  const picker = document.getElementById('cronos-palette-picker');
+  const picker = document.getElementById('umbra-palette-picker');
   if (!picker) return;
   picker.innerHTML = CRONOS_PALETTES.map(pal => `
-    <button class="cronos-pal-btn${pal.id === _activePaletteId ? ' active' : ''}"
+    <button class="umbra-pal-btn${pal.id === _activePaletteId ? ' active' : ''}"
             onclick="applyCronosPalette('${pal.id}');event.stopPropagation();"
             title="${escHtml(pal.name)}">
-      <div class="cronos-pal-icon">${makeLogoSVG(pal, 34, 'pk_'+pal.id, 'medium', 'full')}</div>
-      <span class="cronos-pal-name">${escHtml(pal.name)}</span>
+      <div class="umbra-pal-icon">${makeLogoSVG(pal, 34, 'pk_'+pal.id, 'medium', 'full')}</div>
+      <span class="umbra-pal-name">${escHtml(pal.name)}</span>
     </button>`).join('');
 }
 
@@ -11655,6 +11674,20 @@ async function _verifyPurchase() {
 }
 
 // ===================== INIT =====================
+function _migrateStorageKeys() {
+  if (_storage.getItem('umbra_migrated_v1')) return;
+  [
+    ['cronos-palette',      'umbra-palette'],
+    ['cronos-wallpaper',    'umbra-wallpaper'],
+    ['cronos_notif_config', 'umbra_notif_config'],
+    ['cronos_notif_fired',  'umbra_notif_fired'],
+  ].forEach(([o, n]) => {
+    const v = _storage.getItem(o);
+    if (v !== null) { _storage.setItem(n, v); _storage.removeItem(o); }
+  });
+  _storage.setItem('umbra_migrated_v1', '1');
+}
+
 (async function init() {
   // En Electron: cargar todos los datos del archivo antes de renderizar
   if (isElectron) {
@@ -11666,6 +11699,7 @@ async function _verifyPurchase() {
     } catch(e) {
       console.warn('No se pudieron cargar datos de Electron:', e);
     }
+    _migrateStorageKeys();
     await _cloudSync.init(); // Registra listener OAuth umbraplanner://
     // Leer plan efectivo desde main process
     window._userPlan = await window.electronAPI.getPlan();
@@ -11680,7 +11714,7 @@ async function _verifyPurchase() {
   loadThemeFromStorage();
   loadCronosPalette();
   document.addEventListener('click', e => {
-    const picker = document.getElementById('cronos-palette-picker');
+    const picker = document.getElementById('umbra-palette-picker');
     if (picker && picker.style.display !== 'none') {
       const btn = document.getElementById('tb-logo-btn');
       if (!btn?.contains(e.target) && !picker.contains(e.target)) picker.style.display = 'none';
@@ -11803,7 +11837,7 @@ const _NOTIF_DEFAULT_CONFIG = {
 
 function _notifLoadConfig() {
   try {
-    const raw = _storage.getItem('cronos_notif_config');
+    const raw = _storage.getItem('umbra_notif_config');
     if (!raw) return structuredClone(_NOTIF_DEFAULT_CONFIG);
     return { ..._NOTIF_DEFAULT_CONFIG, ...JSON.parse(raw) };
   } catch { return structuredClone(_NOTIF_DEFAULT_CONFIG); }
@@ -11985,9 +12019,9 @@ function saveNotifConfig() {
     cfg[src] = { enabled: !!toggleEl?.checked, chain };
   });
 
-  _storage.setItem('cronos_notif_config', JSON.stringify(cfg));
+  _storage.setItem('umbra_notif_config', JSON.stringify(cfg));
   if (window.electronAPI) {
-    electronAPI.saveData('cronos_notif_config', JSON.stringify(cfg));
+    electronAPI.saveData('umbra_notif_config', JSON.stringify(cfg));
     electronAPI.notifyConfigChanged();
   }
   closeNotifModal();
