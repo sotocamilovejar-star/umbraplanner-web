@@ -335,7 +335,7 @@ body.view-calendario #sidebar-col { display: none !important; }
   box-shadow: 0 1px 0 rgba(0,0,0,0.04);
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: 2150;
   flex-shrink: 0;
 }
 #topbar-v2 .tb-logo {
@@ -454,13 +454,13 @@ body.view-calendario #sidebar-col { display: none !important; }
 #topbar-v2 .tb-overflow-menu {
   position: absolute;
   top: 36px; right: 0;
-  background: var(--surface);
+  background: var(--surface-float);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 6px;
   min-width: 180px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.18);
-  z-index: 100;
+  z-index: 2200;
   display: none;
   font-family: inherit;
 }
@@ -509,7 +509,7 @@ body.view-calendario #sidebar-col { display: none !important; }
 #umbra-login-panel.visible { display: block; }
 #umbra-login-panel {
   position: fixed; z-index: 99999;
-  background: var(--surface); border: 1px solid var(--border);
+  background: var(--surface-float); border: 1px solid var(--border);
   border-radius: 12px; padding: 12px; min-width: 220px;
   box-shadow: 0 8px 32px rgba(0,0,0,.4); display: none;
 }
@@ -2025,18 +2025,31 @@ h1 {
 #upgrade-modal-box { max-width: 400px; padding: 0; overflow: hidden; border-radius: 16px; }
 .upgrade-header {
   background: linear-gradient(135deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 55%, #7c6af7) 100%);
-  padding: 28px 28px 22px; text-align: center;
+  padding: 24px 28px 20px; text-align: center;
 }
-.upgrade-header-icon  { font-size: 30px; margin-bottom: 6px; }
+.upgrade-header-logo { display: flex; justify-content: center; margin-bottom: 12px; }
+.upgrade-header-logo svg {
+  filter: brightness(0) invert(1) drop-shadow(0 2px 10px rgba(0,0,0,0.25));
+}
 .upgrade-header-title { font-size: 20px; font-weight: 700; color: #fff; letter-spacing: -0.4px; }
-.upgrade-header-price { font-size: 13px; color: rgba(255,255,255,0.78); margin-top: 3px; }
-.upgrade-body { padding: 22px 24px 20px; }
-.upgrade-features-label { font-size: 11px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
-.upgrade-feature { display: flex; align-items: center; gap: 10px; padding: 7px 0; color: var(--text); font-size: 13px; border-bottom: 1px solid var(--border); }
+.upgrade-header-ctx {
+  font-size: 12px; color: rgba(255,255,255,0.72); margin-top: 5px; line-height: 1.4;
+  min-height: 0; padding: 0 4px;
+}
+.upgrade-header-ctx:empty { display: none; }
+.upgrade-header-price {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; color: rgba(255,255,255,0.88); margin-top: 10px;
+  background: rgba(255,255,255,0.15); border-radius: 20px; padding: 3px 12px;
+}
+.upgrade-body { padding: 20px 24px 18px; }
+.upgrade-features-label { font-size: 11px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.upgrade-feature { display: flex; align-items: center; gap: 10px; padding: 6px 0; color: var(--text); font-size: 13px; border-bottom: 1px solid var(--border); }
 .upgrade-feature:last-child { border-bottom: none; }
-.upgrade-feature-icon { font-size: 15px; width: 20px; text-align: center; }
+.upgrade-feature-icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+.upgrade-feature-desc { color: var(--text-dim); font-size: 11px; margin-left: auto; }
 .upgrade-btn-primary {
-  width: 100%; margin-top: 18px; padding: 12px; background: var(--accent);
+  width: 100%; margin-top: 16px; padding: 12px; background: var(--accent);
   border: none; border-radius: 10px; color: #fff; font-size: 14px; font-weight: 700;
   cursor: pointer; box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 35%, transparent);
   transition: opacity .15s;
@@ -4232,7 +4245,7 @@ body.view-calendario #calendar-view {
    propiedades flex aplican cuando el JS abre el panel. */
 #day-panel-overlay {
   position: fixed !important;
-  top: 86px !important; right: 0 !important; bottom: 0 !important;
+  top: 91px !important; right: 0 !important; bottom: 0 !important;
   left: auto !important;
   width: 360px !important;
   background: transparent !important;
@@ -4242,9 +4255,6 @@ body.view-calendario #calendar-view {
   justify-content: flex-end !important;
   padding: 0 !important;
   pointer-events: none !important;
-}
-body:not(.is-electron) #day-panel-overlay {
-  top: 91px !important;
 }
 #day-panel {
   pointer-events: auto !important;
@@ -4942,7 +4952,7 @@ body.view-hoy .tb-week-nav  { display: none !important; }
         <div class="tb-overflow-menu" id="tb-overflow-menu">
           <button id="btn-notif-menu" class="tb-of-item" onclick="closeOverflowMenu();openNotifModal()"><span class="tb-of-icon">🔔</span>Notificaciones</button>
           <button class="tb-of-item" onclick="closeOverflowMenu();openSlotsModal()"><span class="tb-of-icon">⏱</span>Franjas de tiempo</button>
-          <button class="tb-of-item" onclick="closeOverflowMenu();toggleBubble()"><span class="tb-of-icon">◉</span>Burbuja flotante</button>
+          <button class="tb-of-item" id="btn-bubble-menu" onclick="closeOverflowMenu();toggleBubble()"><span class="tb-of-icon">◉</span>Burbuja flotante</button>
           <div class="tb-of-divider"></div>
           <button class="tb-of-item danger" onclick="closeOverflowMenu();resetSchedule()"><span class="tb-of-icon">↺</span>Resetear horario</button>
         </div>
@@ -6071,6 +6081,7 @@ function refreshActiveCardPreview() {
 }
 
 function createNewSchedule() {
+  if (!window._multiScheduleAllowed) { openUpgradeModal('multi'); return; }
   const input = document.getElementById('new-schedule-name');
   if (input) input.value = `Horario ${schedulesList.length + 1}`;
   document.getElementById('new-schedule-modal').style.display = 'flex';
@@ -10471,6 +10482,7 @@ document.addEventListener('mousedown', (e) => {
 // API PÚBLICA — llamada desde el toolbar y otras funciones
 // ============================================================
 function toggleBubble() {
+  if (window._userPlan !== 'pro') { openUpgradeModal('burbuja'); return; }
   if (hasPiP) {
     if (bubbleOpen && pipWindow && !pipWindow.closed) closePiP();
     else openPiP();
@@ -10555,6 +10567,7 @@ if (isElectron) {
 if (isElectron && !isBubbleMode) {
   // Sobrescribir toggleBubble para usar IPC en lugar de PiP/fallback
   window.toggleBubble = function() {
+    if (window._userPlan !== 'pro') { openUpgradeModal('burbuja'); return; }
     const btn = document.getElementById('btn-bubble');
     const isActive = btn && btn.classList.contains('active');
     if (isActive) {
@@ -11563,6 +11576,17 @@ function _applyPlanRestrictions(plan) {
       btnExport.onclick = () => openWallpaperModal();
     }
   }
+  // Burbuja — ítem del menú ···: solo Pro
+  const btnBubbleMenu = document.getElementById('btn-bubble-menu');
+  if (btnBubbleMenu) {
+    if (!isPro) {
+      btnBubbleMenu.onclick = () => { closeOverflowMenu(); openUpgradeModal('burbuja'); };
+    } else {
+      btnBubbleMenu.onclick = () => { closeOverflowMenu(); toggleBubble(); };
+    }
+  }
+  // Multi-horario: solo Pro
+  window._multiScheduleAllowed = isPro;
   // Notificaciones: solo Pro
   const btnNotif = document.getElementById('btn-notif-menu');
   if (btnNotif) {
@@ -11576,6 +11600,19 @@ function _applyPlanRestrictions(plan) {
 }
 
 function openUpgradeModal(feature) {
+  const _UPGRADE_CTX = {
+    burbuja: 'Necesitas Pro para usar la Burbuja flotante.',
+    export:  'Necesitas Pro para exportar PNG glassmorphism.',
+    notif:   'Necesitas Pro para activar Notificaciones.',
+    multi:   'Necesitas Pro para crear múltiples horarios.',
+  };
+  const logoEl = document.getElementById('upgrade-header-logo');
+  if (logoEl) {
+    const pal = CRONOS_PALETTES.find(p => p.id === _activePaletteId) || CRONOS_PALETTES[0];
+    logoEl.innerHTML = makeLogoSVG(pal, 64, 'upg');
+  }
+  const ctxEl = document.getElementById('upgrade-header-ctx');
+  if (ctxEl) ctxEl.textContent = _UPGRADE_CTX[feature] || '';
   document.getElementById('upgrade-modal-overlay').style.display = 'flex';
 }
 
@@ -12450,17 +12487,37 @@ document.addEventListener('mousemove', e=>{ if(_cpkDragging) cpkGradientMove(e);
 <div class="modal-overlay" id="upgrade-modal-overlay" style="display:none" onclick="if(event.target===this)closeUpgradeModal()">
   <div class="modal-box" id="upgrade-modal-box">
     <div class="upgrade-header">
-      <div class="upgrade-header-icon">✨</div>
+      <div class="upgrade-header-logo" id="upgrade-header-logo"></div>
       <div class="upgrade-header-title">UmbraPlanner Pro</div>
-      <div class="upgrade-header-price">$3 USD / mes · Cancela cuando quieras</div>
+      <div class="upgrade-header-ctx" id="upgrade-header-ctx"></div>
     </div>
     <div class="upgrade-body">
-      <div class="upgrade-features-label">Incluye</div>
-      <div class="upgrade-feature"><span class="upgrade-feature-icon">◉</span>Burbuja flotante always-on-top</div>
-      <div class="upgrade-feature"><span class="upgrade-feature-icon">🖼</span>Exportar PNG glassmorphism</div>
-      <div class="upgrade-feature"><span class="upgrade-feature-icon">🔔</span>Notificaciones de clases y eventos</div>
-      <div class="upgrade-feature"><span class="upgrade-feature-icon">▦</span>Multi-horario sin límite</div>
-      <div class="upgrade-feature"><span class="upgrade-feature-icon">☁️</span>Sincronización en la nube</div>
+      <div class="upgrade-features-label">Incluye en Pro</div>
+      <div class="upgrade-feature">
+        <span class="upgrade-feature-icon">◉</span>
+        <span>Burbuja flotante always-on-top</span>
+        <span class="upgrade-feature-desc">widget de escritorio</span>
+      </div>
+      <div class="upgrade-feature">
+        <span class="upgrade-feature-icon">🖼</span>
+        <span>Exportar PNG glassmorphism</span>
+        <span class="upgrade-feature-desc">fondos personalizados</span>
+      </div>
+      <div class="upgrade-feature">
+        <span class="upgrade-feature-icon">🔔</span>
+        <span>Notificaciones de clases y eventos</span>
+        <span class="upgrade-feature-desc">avisos anticipados</span>
+      </div>
+      <div class="upgrade-feature">
+        <span class="upgrade-feature-icon">▦</span>
+        <span>Multi-horario sin límite</span>
+        <span class="upgrade-feature-desc">varios semestres</span>
+      </div>
+      <div class="upgrade-feature">
+        <span class="upgrade-feature-icon">☁️</span>
+        <span>Sincronización en la nube</span>
+        <span class="upgrade-feature-desc">entre dispositivos</span>
+      </div>
       <button class="upgrade-btn-primary" id="btn-upgrade-checkout" onclick="_openCheckout()">Actualizar a Pro — $3/mes</button>
       <button class="upgrade-btn-verify" id="btn-verify-purchase" onclick="_verifyPurchase()">Ya pagué → Verificar compra</button>
       <button class="upgrade-btn-dismiss" onclick="closeUpgradeModal()">Ahora no</button>
