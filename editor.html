@@ -11643,6 +11643,12 @@ function openUpgradeModal(feature) {
   }
   const ctxEl = document.getElementById('upgrade-header-ctx');
   if (ctxEl) ctxEl.textContent = _UPGRADE_CTX[feature] || '';
+  const checkoutBtn = document.getElementById('btn-upgrade-checkout');
+  if (checkoutBtn) {
+    checkoutBtn.textContent = isElectron
+      ? 'Actualizar a Pro — $3/mes'
+      : 'Probar Pro gratis 14 días →';
+  }
   document.getElementById('upgrade-modal-overlay').style.display = 'flex';
 }
 
@@ -11653,16 +11659,20 @@ function closeUpgradeModal() {
 }
 
 async function _openCheckout() {
+  if (!isElectron) {
+    // En web: ir a la sección de precios para que el usuario vea el trial de 14 días
+    (window.parent !== window ? window.parent : window).location.href = '/#pricing';
+    return;
+  }
   const base = 'https://umbraplanner.lemonsqueezy.com/checkout/buy/8ada2e04-ff8f-4b97-ad9b-7fea886d5c25';
   let url = base;
-  if (isElectron && window.electronAPI.getDeviceId) {
+  if (window.electronAPI.getDeviceId) {
     try {
       const deviceId = await window.electronAPI.getDeviceId();
       if (deviceId) url += `?checkout[custom][device_id]=${encodeURIComponent(deviceId)}`;
     } catch {}
   }
-  if (isElectron) window.electronAPI.openAuthUrl(url);
-  else window.open(url, '_blank');
+  window.electronAPI.openAuthUrl(url);
 }
 
 async function _verifyPurchase() {
