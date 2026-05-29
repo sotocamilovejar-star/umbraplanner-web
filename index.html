@@ -244,7 +244,7 @@ section{padding:var(--section-pad) 6%;}
 
 /* ─── PRICING ─────────────────────────────────────────────────────── */
 #pricing{padding:72px 6%;}
-.p-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;max-width:800px;margin:48px auto 0;}
+.p-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;max-width:1060px;margin:48px auto 0;}
 .p-card{
   background:var(--glass);border:1px solid var(--glass-b);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
   border-radius:22px;padding:var(--pricing-pad);position:relative;overflow:hidden;
@@ -390,7 +390,7 @@ footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:52px 6%;dis
   .feat-grid{grid-template-columns:repeat(2,1fr);}
   .steps{grid-template-columns:1fr;max-width:340px;}
   .step-arr{display:none;}
-  .p-grid{grid-template-columns:1fr;max-width:400px;}
+  .p-grid{grid-template-columns:1fr;max-width:420px;}
   .testi-grid{grid-template-columns:1fr;}
   .nav-links{display:none;}
   footer{grid-template-columns:1fr;}
@@ -688,7 +688,7 @@ footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:52px 6%;dis
     <p class="ssub mx">Empieza gratis. Pasa a Pro cuando lo necesites.</p>
   </div>
   <div class="p-grid">
-    <!-- Free -->
+    <!-- Gratis -->
     <div class="p-card fade-up">
       <div class="p-plan">Gratis</div>
       <div class="p-price">$0</div>
@@ -704,9 +704,25 @@ footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:52px 6%;dis
       </ul>
       <a href="/app.html" class="btn btn-outline" style="width:100%;justify-content:center;">Empezar gratis</a>
     </div>
-    <!-- Pro -->
+    <!-- Prueba 14 días -->
     <div class="p-card featured fade-up" style="transition-delay:.1s;">
-      <div class="trial-badge">14 días gratis</div>
+      <div class="trial-badge">RECOMENDADO</div>
+      <div class="p-plan acc">Prueba Pro</div>
+      <div class="p-price p-price-grad">$0<span class="p-mo">/14 días</span></div>
+      <div class="p-tagline">Luego $3/mes · Sin compromiso</div>
+      <ul class="p-feats">
+        <li><span class="ck">✓</span> Todo lo del plan Gratis</li>
+        <li><span class="ck">✓</span> App de escritorio (Win / Mac)</li>
+        <li><span class="ck ck-gold">⭐</span> Burbuja flotante Pro</li>
+        <li><span class="ck ck-gold">⭐</span> Exportar horario como PNG</li>
+        <li><span class="ck ck-gold">⭐</span> Notificaciones de clases</li>
+        <li><span class="ck ck-gold">⭐</span> Temas de color personalizados</li>
+        <li><span class="ck">✓</span> Cancela cuando quieras</li>
+      </ul>
+      <a href="https://umbraplanner.lemonsqueezy.com/buy/8ada2e04-ff8f-4b97-ad9b-7fea886d5c25" target="_blank" class="btn btn-primary" style="width:100%;justify-content:center;padding:14px;font-size:15px;">Probar Pro gratis 14 días</a>
+    </div>
+    <!-- Pro -->
+    <div class="p-card fade-up" style="transition-delay:.2s;">
       <div class="p-plan acc">Pro</div>
       <div class="p-price p-price-grad">$3<span class="p-mo">/mes</span></div>
       <div class="p-tagline">Todo lo que necesitas</div>
@@ -719,7 +735,7 @@ footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:52px 6%;dis
         <li><span class="ck ck-gold">⭐</span> Temas de color personalizados</li>
         <li><span class="ck">✓</span> Soporte prioritario</li>
       </ul>
-      <a href="https://umbraplanner.lemonsqueezy.com/buy/8ada2e04-ff8f-4b97-ad9b-7fea886d5c25" target="_blank" class="btn btn-primary" style="width:100%;justify-content:center;padding:14px;font-size:15px;">Probar Pro gratis 14 días</a>
+      <a href="https://umbraplanner.lemonsqueezy.com/buy/8ada2e04-ff8f-4b97-ad9b-7fea886d5c25" target="_blank" class="btn btn-outline" style="width:100%;justify-content:center;padding:14px;font-size:15px;">Suscribirse — $3/mes</a>
     </div>
   </div>
 </section>
