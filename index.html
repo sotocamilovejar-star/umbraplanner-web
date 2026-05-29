@@ -249,7 +249,10 @@ section{padding:var(--section-pad) 6%;}
   background:var(--glass);border:1px solid var(--glass-b);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
   border-radius:22px;padding:var(--pricing-pad);position:relative;overflow:hidden;
   transition:border-color .25s,box-shadow .25s,background .25s;
+  display:flex;flex-direction:column;
 }
+.p-card .p-feats{flex:1;}
+.p-card .btn{margin-top:auto;}
 .p-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--acc),var(--teal));opacity:0;transition:opacity .25s;}
 .p-card:hover{
   border-color:color-mix(in srgb,var(--acc) 42%,transparent);background:color-mix(in srgb,var(--acc) 8%,transparent);
@@ -702,9 +705,6 @@ footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:52px 6%;dis
         <li><span class="ck">✓</span> Modo Hoy (timeline)</li>
         <li><span class="ck">✓</span> Calendario mensual</li>
         <li><span class="ck">✓</span> Categorías ilimitadas</li>
-        <li><span class="ck ck-off">✗</span> <span style="color:var(--txt3)">App de escritorio</span></li>
-        <li><span class="ck ck-off">✗</span> <span style="color:var(--txt3)">Burbuja flotante</span></li>
-        <li><span class="ck ck-off">✗</span> <span style="color:var(--txt3)">Exportar como PNG</span></li>
       </ul>
       <a href="/app.html" class="btn btn-outline" style="width:100%;justify-content:center;">Empezar gratis</a>
     </div>
