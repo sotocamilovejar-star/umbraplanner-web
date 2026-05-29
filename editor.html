@@ -486,6 +486,8 @@ body.view-calendario #sidebar-col { display: none !important; }
   height: 1px; background: var(--border); margin: 4px 0;
 }
 #topbar-v2 .tb-of-icon { font-size: 13px; width: 16px; text-align: center; }
+body.is-electron #btn-goto-landing { display: none !important; }
+body.is-electron #btn-goto-landing + .tb-of-divider { display: none !important; }
 #topbar-v2 .tb-avatar {
   width: 30px; height: 30px;
   border-radius: 50%;
@@ -4953,6 +4955,8 @@ body.view-hoy .tb-week-nav  { display: none !important; }
           <button id="btn-notif-menu" class="tb-of-item" onclick="closeOverflowMenu();openNotifModal()"><span class="tb-of-icon">🔔</span>Notificaciones</button>
           <button class="tb-of-item" onclick="closeOverflowMenu();openSlotsModal()"><span class="tb-of-icon">⏱</span>Franjas de tiempo</button>
           <button class="tb-of-item" id="btn-bubble-menu" onclick="closeOverflowMenu();toggleBubble()"><span class="tb-of-icon">◉</span>Burbuja flotante</button>
+          <div class="tb-of-divider"></div>
+          <a class="tb-of-item" id="btn-goto-landing" href="/" onclick="closeOverflowMenu()" style="text-decoration:none;display:flex;align-items:center;gap:8px"><span class="tb-of-icon">🏠</span>Volver al inicio</a>
           <div class="tb-of-divider"></div>
           <button class="tb-of-item danger" onclick="closeOverflowMenu();resetSchedule()"><span class="tb-of-icon">↺</span>Resetear horario</button>
         </div>
