@@ -11660,8 +11660,7 @@ function closeUpgradeModal() {
 
 async function _openCheckout() {
   if (!isElectron) {
-    // En web: ir a la sección de precios para que el usuario vea el trial de 14 días
-    (window.parent !== window ? window.parent : window).location.href = '/#pricing';
+    window.parent.postMessage({ type: 'umbra-navigate', url: '/#pricing' }, '*');
     return;
   }
   const base = 'https://umbraplanner.lemonsqueezy.com/checkout/buy/8ada2e04-ff8f-4b97-ad9b-7fea886d5c25';
@@ -11676,7 +11675,10 @@ async function _openCheckout() {
 }
 
 async function _verifyPurchase() {
-  if (!isElectron) return;
+  if (!isElectron) {
+    window.parent.postMessage({ type: 'umbra-reload' }, '*');
+    return;
+  }
   const btn = document.getElementById('btn-verify-purchase');
   if (btn) { btn.textContent = 'Verificando...'; btn.disabled = true; }
   try {

@@ -98,9 +98,11 @@ body{font-family:'DM Sans',sans-serif;background:#0d0d14;color:#e4e2ff;display:f
     frame.classList.add('show')
   }
 
-  // Escuchar "cerrar sesión" enviado desde el iframe
+  // Escuchar mensajes del iframe
   window.addEventListener('message', (e) => {
     if (e.data?.type === 'umbra-sign-out') signOut()
+    if (e.data?.type === 'umbra-navigate') window.location.href = e.data.url
+    if (e.data?.type === 'umbra-reload') window.location.reload()
   })
 
   // onAuthStateChange maneja sesión existente + callback OAuth
