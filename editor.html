@@ -5542,6 +5542,10 @@ const _cloudSync = {
               initSchedules();
               if (typeof loadFromStorage === 'function') loadFromStorage();
               if (typeof renderTable === 'function') renderTable();
+              if (typeof renderLegend === 'function') renderLegend();
+              if (typeof renderScheduleStrip === 'function') renderScheduleStrip();
+              if (typeof updateBadges === 'function') updateBadges();
+              if (typeof renderWeekSummary === 'function') renderWeekSummary();
             }
           } catch(e) { console.warn('[cloudSync] auth callback error:', e); }
         });
@@ -5614,6 +5618,16 @@ const _cloudSync = {
         }
       });
       console.log(`[cloudSync] ${data.length} claves cargadas desde la nube`);
+      // Actualizar categorías en memoria usando el horario activo de la nube
+      try {
+        const _aid = (isElectron ? _electronStore['horario_active_schedule'] : localStorage.getItem('horario_active_schedule')) || 'sc_default';
+        const _raw = isElectron ? _electronStore['horario_v3_' + _aid] : localStorage.getItem('horario_v3_' + _aid);
+        if (_raw) {
+          const _p = JSON.parse(_raw);
+          if (_p.colors && Object.keys(_p.colors).length > 0) categoryColors = _p.colors;
+          if (_p.labels && Object.keys(_p.labels).length > 0) categoryLabels = _p.labels;
+        }
+      } catch(e) {}
     }
     // Primer push: subir datos locales que la nube no tiene aún
     this._pushLocalToCloud();
@@ -5669,6 +5683,8 @@ const _cloudSync = {
       categoryColors = {};
       categoryLabels = {};
       if (typeof renderTable === 'function') renderTable();
+      if (typeof renderLegend === 'function') renderLegend();
+      if (typeof renderWeekSummary === 'function') renderWeekSummary();
       if (typeof loadCronosPalette === 'function') loadCronosPalette();
     }
   },
