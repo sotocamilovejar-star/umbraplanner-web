@@ -68,6 +68,10 @@ body{font-family:'DM Sans',sans-serif;background:#0d0d14;color:#e4e2ff;display:f
 
   let appShown = false
 
+  // Preservar intención de checkout a través del login
+  const _checkoutParam = new URLSearchParams(window.location.search).get('checkout')
+  if (_checkoutParam) sessionStorage.setItem('umbra-pending-checkout', _checkoutParam)
+
   function showApp(session) {
     if (appShown) return
     appShown = true
@@ -90,6 +94,14 @@ body{font-family:'DM Sans',sans-serif;background:#0d0d14;color:#e4e2ff;display:f
           { type: 'umbra-user-session', user: { name, email } },
           '*'
         )
+        // Si hay checkout pendiente, abrirlo después de que el editor inicialice
+        const pending = sessionStorage.getItem('umbra-pending-checkout')
+        if (pending) {
+          sessionStorage.removeItem('umbra-pending-checkout')
+          setTimeout(() => {
+            frame.contentWindow.postMessage({ type: 'umbra-checkout', plan: pending }, '*')
+          }, 1200)
+        }
       }, 400)
     }, { once: true })
 

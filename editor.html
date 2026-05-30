@@ -5627,6 +5627,15 @@ const _cloudSync = {
     _sbClient.from('user_data')
       .delete().eq('user_id', _sbUserId).eq('key', key)
       .then(({ error }) => { if (error) console.warn('[cloudSync] remove error:', error); });
+  },
+  async _getUserPlan() {
+    if (!_sbClient || !_sbUserId) return 'free';
+    const { data, error } = await _sbClient
+      .from('user_data').select('value')
+      .eq('user_id', _sbUserId).eq('key', 'plan')
+      .single();
+    if (error || !data) return 'free';
+    return data.value === 'pro' ? 'pro' : 'free';
   }
 };
 
@@ -11652,9 +11661,7 @@ function openUpgradeModal(feature) {
   if (ctxEl) ctxEl.textContent = _UPGRADE_CTX[feature] || '';
   const checkoutBtn = document.getElementById('btn-upgrade-checkout');
   if (checkoutBtn) {
-    checkoutBtn.textContent = isElectron
-      ? 'Actualizar a Pro — $3/mes'
-      : 'Ver planes →';
+    checkoutBtn.textContent = 'Actualizar a Pro — $3/mes';
   }
   document.getElementById('upgrade-modal-overlay').style.display = 'flex';
 }
@@ -11665,31 +11672,39 @@ function closeUpgradeModal() {
   if (btn) { btn.textContent = 'Ya pagué → Verificar compra'; btn.disabled = false; }
 }
 
-async function _openCheckout() {
-  if (!isElectron) {
-    window.parent.postMessage({ type: 'umbra-navigate', url: '/#pricing' }, '*');
-    return;
-  }
-  const base = 'https://umbraplanner.lemonsqueezy.com/checkout/buy/8ada2e04-ff8f-4b97-ad9b-7fea886d5c25';
-  let url = base;
-  if (window.electronAPI.getDeviceId) {
+const _CHECKOUT_URLS = {
+  pro:   'https://umbraplanner.lemonsqueezy.com/buy/8ada2e04-ff8f-4b97-ad9b-7fea886d5c25',
+  trial: 'https://umbraplanner.lemonsqueezy.com/checkout/buy/97ed53cd-ff66-42dc-800a-c773c89a2720',
+};
+
+async function _openCheckout(planType) {
+  const base = _CHECKOUT_URLS[planType] || _CHECKOUT_URLS.pro;
+  const params = new URLSearchParams();
+  if (_sbUserId) params.set('checkout[custom][user_id]', _sbUserId);
+  if (isElectron && window.electronAPI?.getDeviceId) {
     try {
       const deviceId = await window.electronAPI.getDeviceId();
-      if (deviceId) url += `?checkout[custom][device_id]=${encodeURIComponent(deviceId)}`;
+      if (deviceId) params.set('checkout[custom][device_id]', deviceId);
     } catch {}
   }
-  window.electronAPI.openAuthUrl(url);
+  const url = base + (params.toString() ? '?' + params.toString() : '');
+  if (isElectron) {
+    window.electronAPI.openAuthUrl(url);
+  } else {
+    window.open(url, '_blank');
+  }
 }
 
 async function _verifyPurchase() {
-  if (!isElectron) {
-    window.parent.postMessage({ type: 'umbra-reload' }, '*');
-    return;
-  }
   const btn = document.getElementById('btn-verify-purchase');
   if (btn) { btn.textContent = 'Verificando...'; btn.disabled = true; }
   try {
-    const plan = await window.electronAPI.refreshPlan();
+    let plan;
+    if (isElectron) {
+      plan = await window.electronAPI.refreshPlan();
+    } else {
+      plan = await _cloudSync._getUserPlan();
+    }
     window._userPlan = plan;
     if (plan === 'pro') {
       _applyPlanRestrictions(plan);
@@ -11738,7 +11753,8 @@ function _migrateStorageKeys() {
   } else {
     // En web: precargar datos desde Supabase si hay sesión activa
     await _cloudSync.init();
-    window._userPlan = 'free'; // Web siempre free por ahora
+    window._userPlan = await _cloudSync._getUserPlan();
+    console.log('[plan] web efectivo:', window._userPlan);
     _applyPlanRestrictions(window._userPlan);
   }
 
@@ -12064,11 +12080,15 @@ function saveNotifConfig() {
 
   // Recibir sesión del parent (app.html)
   window.addEventListener('message', (e) => {
-    if (e.data?.type !== 'umbra-user-session') return
-    _webUser = e.data.user
-    const initial = (_webUser.name || _webUser.email || 'U')[0].toUpperCase()
-    const av = document.getElementById('tb-user-avatar')
-    if (av) { av.textContent = initial; av.style.opacity = '1'; }
+    if (e.data?.type === 'umbra-user-session') {
+      _webUser = e.data.user
+      const initial = (_webUser.name || _webUser.email || 'U')[0].toUpperCase()
+      const av = document.getElementById('tb-user-avatar')
+      if (av) { av.textContent = initial; av.style.opacity = '1'; }
+    }
+    if (e.data?.type === 'umbra-checkout') {
+      _openCheckout(e.data.plan || 'pro')
+    }
   })
 
   // Cerrar paneles al clic fuera
@@ -12583,7 +12603,7 @@ document.addEventListener('mousemove', e=>{ if(_cpkDragging) cpkGradientMove(e);
         <span>Sincronización en la nube</span>
         <span class="upgrade-feature-desc">entre dispositivos</span>
       </div>
-      <button class="upgrade-btn-primary" id="btn-upgrade-checkout" onclick="_openCheckout()">Actualizar a Pro — $3/mes</button>
+      <button class="upgrade-btn-primary" id="btn-upgrade-checkout" onclick="_openCheckout('pro')">Actualizar a Pro — $3/mes</button>
       <button class="upgrade-btn-verify" id="btn-verify-purchase" onclick="_verifyPurchase()">Ya pagué → Verificar compra</button>
       <button class="upgrade-btn-dismiss" onclick="closeUpgradeModal()">Ahora no</button>
     </div>

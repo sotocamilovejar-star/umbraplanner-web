@@ -47,6 +47,37 @@ function supabaseUpdate(deviceId, plan) {
   });
 }
 
+function supabaseUpdateUser(userId, plan) {
+  return new Promise((resolve, reject) => {
+    const body = JSON.stringify([{
+      user_id:    userId,
+      key:        'plan',
+      value:      plan,
+      updated_at: new Date().toISOString(),
+    }]);
+    const opts = {
+      hostname: SUPABASE_HOST,
+      path:     '/rest/v1/user_data?on_conflict=user_id,key',
+      method:   'POST',
+      headers: {
+        'apikey':         SUPABASE_KEY,
+        'Authorization':  `Bearer ${SUPABASE_KEY}`,
+        'Content-Type':   'application/json',
+        'Prefer':         'resolution=merge-duplicates,return=minimal',
+        'Content-Length': Buffer.byteLength(body),
+      },
+    };
+    const req = https.request(opts, res => {
+      let raw = '';
+      res.on('data', d => raw += d);
+      res.on('end', () => resolve({ status: res.statusCode }));
+    });
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
 function getRawBody(req) {
   return new Promise((resolve, reject) => {
     let buf = '';
@@ -87,13 +118,14 @@ module.exports = async function handler(req, res) {
   try { payload = JSON.parse(rawBody); }
   catch { return res.status(400).json({ error: 'Invalid JSON' }); }
 
-  const event    = payload?.meta?.event_name   || '';
+  const event    = payload?.meta?.event_name            || '';
   const deviceId = payload?.meta?.custom_data?.device_id || '';
-  const status   = payload?.data?.attributes?.status || '';
+  const userId   = payload?.meta?.custom_data?.user_id   || '';
+  const status   = payload?.data?.attributes?.status     || '';
 
-  console.log(`[webhook] event=${event} device=${deviceId} status=${status}`);
+  console.log(`[webhook] event=${event} device=${deviceId} user=${userId} status=${status}`);
 
-  if (!deviceId) return res.status(200).json({ ok: true, note: 'no device_id' });
+  if (!deviceId && !userId) return res.status(200).json({ ok: true, note: 'no identifier' });
   if (!SUPABASE_KEY) return res.status(500).json({ error: 'SUPABASE_SERVICE_KEY not set' });
 
   let newPlan = null;
@@ -102,8 +134,14 @@ module.exports = async function handler(req, res) {
 
   if (newPlan) {
     try {
-      const r = await supabaseUpdate(deviceId, newPlan);
-      console.log(`[webhook] device ${deviceId} → ${newPlan} (HTTP ${r.status})`);
+      if (deviceId) {
+        const r = await supabaseUpdate(deviceId, newPlan);
+        console.log(`[webhook] device ${deviceId} → ${newPlan} (HTTP ${r.status})`);
+      }
+      if (userId) {
+        const r = await supabaseUpdateUser(userId, newPlan);
+        console.log(`[webhook] user ${userId} → ${newPlan} (HTTP ${r.status})`);
+      }
     } catch (err) {
       console.error('[webhook] Supabase error:', err.message);
       return res.status(500).json({ error: 'db update failed' });

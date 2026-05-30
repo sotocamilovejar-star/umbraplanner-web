@@ -387,8 +387,9 @@ footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:52px 6%;dis
 .tw-sw.sel{box-shadow:0 0 0 2.5px #fff,0 0 0 4.5px var(--acc);transform:scale(1.1);}
 
 /* ─── SCROLL ANIMATIONS ─────────────────────────────────────────────── */
-.fade-up{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease;}
+.fade-up{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease;pointer-events:none;}
 .fade-up.visible{opacity:1;transform:none;}
+.fade-up.anim-done{pointer-events:auto;}
 
 /* ─── RESPONSIVE ─────────────────────────────────────────────────── */
 @media(max-width:960px){
@@ -722,7 +723,7 @@ footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:52px 6%;dis
         <li><span class="ck ck-gold">⭐</span> Temas de color personalizados</li>
         <li><span class="ck">✓</span> Cancela cuando quieras</li>
       </ul>
-      <a href="https://umbraplanner.lemonsqueezy.com/buy/8ada2e04-ff8f-4b97-ad9b-7fea886d5c25" target="_blank" class="btn btn-outline" style="width:100%;justify-content:center;padding:14px;font-size:15px;">Probar Pro gratis 14 días</a>
+      <a href="/app.html?checkout=trial" class="btn btn-outline" style="width:100%;justify-content:center;padding:14px;font-size:15px;">Probar Pro gratis 14 días</a>
     </div>
     <!-- Pro -->
     <div class="p-card fade-up" style="transition-delay:.2s;">
@@ -737,7 +738,7 @@ footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:52px 6%;dis
         <li><span class="ck ck-gold">⭐</span> Temas de color personalizados</li>
         <li><span class="ck">✓</span> Soporte prioritario</li>
       </ul>
-      <a href="https://umbraplanner.lemonsqueezy.com/buy/8ada2e04-ff8f-4b97-ad9b-7fea886d5c25" target="_blank" class="btn btn-outline" style="width:100%;justify-content:center;padding:14px;font-size:15px;">Suscribirse — $3/mes</a>
+      <a href="/app.html?checkout=pro" class="btn btn-outline" style="width:100%;justify-content:center;padding:14px;font-size:15px;">Suscribirse — $3/mes</a>
     </div>
   </div>
 </section>
@@ -1102,7 +1103,13 @@ function buildMes() {
 
 /* ═══ SCROLL ANIMATIONS ═══════════════════════════════════════════ */
 const observer = new IntersectionObserver(entries => {
-  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      e.target.addEventListener('transitionend', () => e.target.classList.add('anim-done'), { once: true });
+      observer.unobserve(e.target);
+    }
+  });
 }, { threshold: 0.12 });
 document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
 
