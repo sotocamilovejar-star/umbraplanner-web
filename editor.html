@@ -1391,22 +1391,22 @@ h1 {
   margin-top: 12px;
   padding: 6px 8px;
   border-radius: 8px;
-  border: 1px dashed rgba(124,111,247,0.3);
+  border: 1px dashed color-mix(in srgb, var(--accent) 30%, transparent);
   background: transparent;
-  color: rgba(124,111,247,0.7);
+  color: color-mix(in srgb, var(--accent) 70%, var(--text-dim));
   font-size: 0.78rem;
   font-family: 'DM Sans', sans-serif;
   cursor: pointer;
   width: 100%;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
-#legend-add-btn:hover { background: rgba(124,111,247,0.1); border-color: rgba(124,111,247,0.6); color: #c0b8ff; }
+#legend-add-btn:hover { background: var(--accent-bg); border-color: color-mix(in srgb, var(--accent) 60%, transparent); color: var(--accent); }
 
 /* Formulario nueva categoría inline */
 #legend-new-form {
   margin-top: 12px;
-  background: rgba(124,111,247,0.08);
-  border: 1px solid rgba(124,111,247,0.2);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-bd);
   border-radius: 10px;
   padding: 12px;
   display: none;
@@ -1426,7 +1426,7 @@ h1 {
   font-size: 0.8rem;
   outline: none;
 }
-.legend-new-input:focus { border-color: rgba(124,111,247,0.5); }
+.legend-new-input:focus { border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
 .legend-new-color {
   width: 30px; height: 28px;
   border: 1px solid var(--border);
