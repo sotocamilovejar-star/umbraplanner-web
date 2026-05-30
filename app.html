@@ -68,6 +68,11 @@ body{font-family:'DM Sans',sans-serif;background:#0d0d14;color:#e4e2ff;display:f
 
   let appShown = false
 
+  const _CHECKOUT_URLS = {
+    trial: 'https://umbraplanner.lemonsqueezy.com/checkout/buy/97ed53cd-ff66-42dc-800a-c773c89a2720',
+    pro:   'https://umbraplanner.lemonsqueezy.com/buy/8ada2e04-ff8f-4b97-ad9b-7fea886d5c25',
+  }
+
   // Preservar intención de checkout a través del login
   const _checkoutParam = new URLSearchParams(window.location.search).get('checkout')
   if (_checkoutParam) sessionStorage.setItem('umbra-pending-checkout', _checkoutParam)
@@ -76,9 +81,20 @@ body{font-family:'DM Sans',sans-serif;background:#0d0d14;color:#e4e2ff;display:f
     if (appShown) return
     appShown = true
 
-    const meta = session.user?.user_metadata || {}
-    const name  = meta.full_name || meta.name || ''
-    const email = session.user?.email || ''
+    const userId = session.user?.id || ''
+    const meta   = session.user?.user_metadata || {}
+    const name   = meta.full_name || meta.name || ''
+    const email  = session.user?.email || ''
+
+    // Si hay checkout pendiente → navegar directamente al checkout (evita popups)
+    const pending = sessionStorage.getItem('umbra-pending-checkout')
+    if (pending) {
+      sessionStorage.removeItem('umbra-pending-checkout')
+      const base = _CHECKOUT_URLS[pending] || _CHECKOUT_URLS.pro
+      const url  = base + (userId ? `?checkout[custom][user_id]=${encodeURIComponent(userId)}` : '')
+      window.location.href = url
+      return
+    }
 
     const frame = document.getElementById('appFrame')
 
@@ -94,14 +110,6 @@ body{font-family:'DM Sans',sans-serif;background:#0d0d14;color:#e4e2ff;display:f
           { type: 'umbra-user-session', user: { name, email } },
           '*'
         )
-        // Si hay checkout pendiente, abrirlo después de que el editor inicialice
-        const pending = sessionStorage.getItem('umbra-pending-checkout')
-        if (pending) {
-          sessionStorage.removeItem('umbra-pending-checkout')
-          setTimeout(() => {
-            frame.contentWindow.postMessage({ type: 'umbra-checkout', plan: pending }, '*')
-          }, 1200)
-        }
       }, 400)
     }, { once: true })
 
