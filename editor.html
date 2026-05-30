@@ -5570,7 +5570,30 @@ const _cloudSync = {
       await _cloudSync._loadFromCloud();
     } catch(e) { console.warn('[cloudSync] init fallido:', e); }
   },
+  _clearLocalScheduleData() {
+    const _PREFIXES = ['horario_v3_','horario_slots_','horario_calendar_','horario_pnotes_','horario_pcells_','puntual_'];
+    const _EXACT = new Set(['horario_v3','horario_slots','horario_schedules_list','horario_active_schedule','umbra_notif_config','umbra-palette','umbra-wallpaper','showWeekend']);
+    const allKeys = isElectron ? Object.keys(_electronStore) : Object.keys(localStorage);
+    for (const key of allKeys) {
+      if (key === 'umbra_local_owner' || key === 'umbra_auth_session') continue;
+      if (_EXACT.has(key) || _PREFIXES.some(p => key.startsWith(p))) {
+        if (isElectron) delete _electronStore[key];
+        else localStorage.removeItem(key);
+      }
+    }
+    console.log('[cloudSync] datos locales limpiados — cambio de usuario detectado');
+  },
   async _loadFromCloud() {
+    const _OWNER_KEY = 'umbra_local_owner';
+    // Detectar cambio de usuario → limpiar datos locales del usuario anterior
+    const localOwner = isElectron ? _electronStore[_OWNER_KEY] : localStorage.getItem(_OWNER_KEY);
+    if (localOwner && localOwner !== _sbUserId) {
+      this._clearLocalScheduleData();
+    }
+    // Marcar al usuario actual como dueño de los datos locales
+    if (isElectron) _electronStore[_OWNER_KEY] = _sbUserId;
+    else localStorage.setItem(_OWNER_KEY, _sbUserId);
+    // Cargar datos de la nube
     const { data, error } = await _sbClient
       .from('user_data').select('key, value').eq('user_id', _sbUserId);
     if (error) { console.warn('[cloudSync] load error:', error); return; }
