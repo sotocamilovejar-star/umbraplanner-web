@@ -11661,7 +11661,16 @@ function openUpgradeModal(feature) {
   if (ctxEl) ctxEl.textContent = _UPGRADE_CTX[feature] || '';
   const checkoutBtn = document.getElementById('btn-upgrade-checkout');
   if (checkoutBtn) {
-    checkoutBtn.textContent = 'Actualizar a Pro — $3/mes';
+    if (isElectron) {
+      checkoutBtn.textContent = 'Actualizar a Pro — $3/mes';
+      checkoutBtn.onclick = () => _openCheckout('pro');
+    } else {
+      checkoutBtn.textContent = 'Ver planes →';
+      checkoutBtn.onclick = () => {
+        closeUpgradeModal();
+        window.parent.postMessage({ type: 'umbra-navigate', url: '/#pricing' }, '*');
+      };
+    }
   }
   document.getElementById('upgrade-modal-overlay').style.display = 'flex';
 }
@@ -11691,7 +11700,13 @@ async function _openCheckout(planType) {
   if (isElectron) {
     window.electronAPI.openAuthUrl(url);
   } else {
-    window.open(url, '_blank');
+    // Web: si viene de un postMessage (landing), abrir checkout directo
+    // Si viene del botón del modal (sin planType explícito), ir a precios
+    if (planType) {
+      window.open(url, '_blank');
+    } else {
+      window.parent.postMessage({ type: 'umbra-navigate', url: '/#pricing' }, '*');
+    }
   }
 }
 
