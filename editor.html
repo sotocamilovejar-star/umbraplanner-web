@@ -5586,6 +5586,8 @@ const _cloudSync = {
       });
       console.log(`[cloudSync] ${data.length} claves cargadas desde la nube`);
     }
+    // Primer push: subir datos locales que la nube no tiene aún
+    this._pushLocalToCloud();
   },
   _updateAvatar(user) {
     const meta  = user.user_metadata || {};
@@ -5643,6 +5645,33 @@ const _cloudSync = {
       .from('devices').update({ plan }).eq('device_id', deviceId);
     if (error) console.warn('[cloudSync] syncDevicePlan error:', error);
     else console.log(`[cloudSync] devices.plan → ${plan} (sincronizado desde user_data)`);
+  },
+  async _pushLocalToCloud() {
+    if (!_sbClient || !_sbUserId) return;
+    // Keys que NO se sincronizan (auth, flags de migración, notifs disparadas)
+    const _SKIP = new Set(['umbra_auth_session','umbra_notif_fired','umbra_migrated_v1','_v200_cat_reset']);
+    try {
+      // 1. Obtener qué keys ya existen en la nube
+      const { data: cloudRows } = await _sbClient
+        .from('user_data').select('key').eq('user_id', _sbUserId);
+      const cloudKeys = new Set((cloudRows || []).map(r => r.key));
+      // 2. Iterar todas las keys locales
+      const localKeys = isElectron ? Object.keys(_electronStore) : Object.keys(localStorage);
+      const upserts = [];
+      for (const key of localKeys) {
+        if (_SKIP.has(key) || cloudKeys.has(key)) continue;
+        const value = isElectron ? _electronStore[key] : localStorage.getItem(key);
+        if (value !== null && value !== undefined)
+          upserts.push({ user_id: _sbUserId, key, value: String(value), updated_at: new Date().toISOString() });
+      }
+      if (upserts.length === 0) return;
+      // 3. Subir en lotes de 50
+      for (let i = 0; i < upserts.length; i += 50) {
+        await _sbClient.from('user_data')
+          .upsert(upserts.slice(i, i + 50), { onConflict: 'user_id,key' });
+      }
+      console.log(`[cloudSync] primer push: ${upserts.length} claves subidas`);
+    } catch(e) { console.warn('[cloudSync] pushLocalToCloud error:', e); }
   }
 };
 
