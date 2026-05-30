@@ -5644,8 +5644,19 @@ const _cloudSync = {
     if (_sbClient) await _sbClient.auth.signOut();
     _sbUserId = null;
     window._electronUser = null;
+    // Ocultar avatar, mostrar botón login
     const av = document.getElementById('tb-user-avatar');
-    if (av) av.textContent = 'M';
+    if (av) { av.style.opacity = '0'; av.textContent = 'M'; }
+    _cloudSync._showLoginBtn();
+    // Limpiar datos locales del usuario que cerró sesión
+    _cloudSync._clearLocalScheduleData();
+    // Recargar el horario vacío
+    if (typeof initSchedules === 'function') {
+      _electronStore = {};
+      initSchedules();
+      if (typeof loadFromStorage === 'function') loadFromStorage();
+      if (typeof renderTable === 'function') renderTable();
+    }
   },
   set(key, value) {
     if (!_sbClient || !_sbUserId) return;
