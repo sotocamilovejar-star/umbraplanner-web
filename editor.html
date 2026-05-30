@@ -4946,6 +4946,7 @@ body.view-hoy .tb-week-nav  { display: none !important; }
     <!-- Acciones permanentes -->
     <div class="tb-actions">
       <button id="btn-export-png" class="tb-action-btn tb-action-btn--primary" onclick="openWallpaperModal()" title="Personalizar y exportar PNG"><span class="tb-action-icon">🖼</span>Guardar PNG</button>
+      <button id="tb-login-btn" class="tb-action-btn tb-action-btn--primary" onclick="_cloudSync.login('google')" title="Iniciar sesión" style="display:none"><span class="tb-action-icon">👤</span>Iniciar sesión</button>
 
       <button class="tb-icon-btn" id="btn-hints-toggle" onclick="toggleHintsBar()" title="Atajos de teclado" style="font-weight:700;">?</button>
 
@@ -5553,19 +5554,17 @@ const _cloudSync = {
             _sbUserId = session.user.id;
             _cloudSync._updateAvatar(session.user);
           } else {
-            const _av = document.getElementById('tb-user-avatar');
-            if (_av) _av.style.opacity = '1';
+            _cloudSync._showLoginBtn();
           }
         } catch(e) {
           console.warn('[cloudSync] restore session error:', e);
-          const _av = document.getElementById('tb-user-avatar');
-          if (_av) _av.style.opacity = '1';
+          _cloudSync._showLoginBtn();
         }
         return;
       }
       _sbClient = createClient(_SUPABASE_URL, _SUPABASE_ANON);
       const { data: { session } } = await _sbClient.auth.getSession();
-      if (!session) { const _av = document.getElementById('tb-user-avatar'); if (_av) _av.style.opacity = '1'; return; }
+      if (!session) { _cloudSync._showLoginBtn(); return; }
       _sbUserId = session.user.id;
       await _cloudSync._loadFromCloud();
     } catch(e) { console.warn('[cloudSync] init fallido:', e); }
@@ -5612,10 +5611,18 @@ const _cloudSync = {
     // Primer push: subir datos locales que la nube no tiene aún
     this._pushLocalToCloud();
   },
+  _showLoginBtn() {
+    const lb = document.getElementById('tb-login-btn');
+    if (lb) lb.style.display = 'inline-flex';
+    // Mantener avatar oculto (sin mostrar "M")
+  },
   _updateAvatar(user) {
     const meta  = user.user_metadata || {};
     const name  = meta.full_name || meta.name || user.email || 'U';
     const email = user.email || '';
+    // Ocultar botón login, mostrar avatar
+    const lb = document.getElementById('tb-login-btn');
+    if (lb) lb.style.display = 'none';
     const av = document.getElementById('tb-user-avatar');
     if (av) { av.textContent = name[0].toUpperCase(); av.style.opacity = '1'; }
     window._electronUser = { name, email };
@@ -5707,17 +5714,20 @@ const _storage = isElectron ? {
   },
   setItem(key, value) {
     _electronStore[key] = value;
-    window.electronAPI.saveData(key, value); // async fire-and-forget
-    _cloudSync.set(key, value);
-    // Notificar a la burbuja que los datos cambiaron (solo desde ventana principal)
+    if (_sbUserId) { // Solo persistir si hay sesión activa
+      window.electronAPI.saveData(key, value);
+      _cloudSync.set(key, value);
+    }
     if (!isBubbleMode && !_handlingDataChanged && window.electronAPI.notifyDataChanged) {
       window.electronAPI.notifyDataChanged();
     }
   },
   removeItem(key) {
     delete _electronStore[key];
-    window.electronAPI.deleteData(key);
-    _cloudSync.remove(key);
+    if (_sbUserId) {
+      window.electronAPI.deleteData(key);
+      _cloudSync.remove(key);
+    }
     if (!isBubbleMode && !_handlingDataChanged && window.electronAPI.notifyDataChanged) {
       window.electronAPI.notifyDataChanged();
     }
@@ -11825,6 +11835,10 @@ function _migrateStorageKeys() {
     }
     _migrateStorageKeys();
     await _cloudSync.init(); // Registra listener OAuth umbraplanner://
+    // Modo invitado: si no hay sesión → limpiar datos del usuario anterior
+    if (!_sbUserId) {
+      _cloudSync._clearLocalScheduleData();
+    }
     // Combinar plan de dispositivo (devices) + plan de cuenta (user_data)
     const _devicePlan = await window.electronAPI.getPlan();
     const _accountPlan = await _cloudSync._getUserPlan();
@@ -12171,6 +12185,8 @@ function saveNotifConfig() {
     if (e.data?.type === 'umbra-user-session') {
       _webUser = e.data.user
       const initial = (_webUser.name || _webUser.email || 'U')[0].toUpperCase()
+      const lb = document.getElementById('tb-login-btn')
+      if (lb) lb.style.display = 'none'
       const av = document.getElementById('tb-user-avatar')
       if (av) { av.textContent = initial; av.style.opacity = '1'; }
     }
