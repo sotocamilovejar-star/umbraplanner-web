@@ -5636,6 +5636,13 @@ const _cloudSync = {
       .single();
     if (error || !data) return 'free';
     return data.value === 'pro' ? 'pro' : 'free';
+  },
+  async _syncDevicePlan(deviceId, plan) {
+    if (!_sbClient || !deviceId) return;
+    const { error } = await _sbClient
+      .from('devices').update({ plan }).eq('device_id', deviceId);
+    if (error) console.warn('[cloudSync] syncDevicePlan error:', error);
+    else console.log(`[cloudSync] devices.plan → ${plan} (sincronizado desde user_data)`);
   }
 };
 
@@ -11716,7 +11723,12 @@ async function _verifyPurchase() {
   try {
     let plan;
     if (isElectron) {
-      plan = await window.electronAPI.refreshPlan();
+      const _dp = await window.electronAPI.refreshPlan();
+      const _ap = await _cloudSync._getUserPlan();
+      plan = (_dp === 'pro' || _ap === 'pro') ? 'pro' : 'free';
+      if (_ap === 'pro' && _dp !== 'pro') {
+        try { const _did = await window.electronAPI.getDeviceId(); _cloudSync._syncDevicePlan(_did, 'pro'); } catch {}
+      }
     } else {
       plan = await _cloudSync._getUserPlan();
     }
@@ -11761,9 +11773,18 @@ function _migrateStorageKeys() {
     }
     _migrateStorageKeys();
     await _cloudSync.init(); // Registra listener OAuth umbraplanner://
-    // Leer plan efectivo desde main process
-    window._userPlan = await window.electronAPI.getPlan();
-    console.log('[plan] efectivo:', window._userPlan);
+    // Combinar plan de dispositivo (devices) + plan de cuenta (user_data)
+    const _devicePlan = await window.electronAPI.getPlan();
+    const _accountPlan = await _cloudSync._getUserPlan();
+    window._userPlan = (_devicePlan === 'pro' || _accountPlan === 'pro') ? 'pro' : 'free';
+    // Sincronizar devices.plan si el usuario compró desde la web
+    if (_accountPlan === 'pro' && _devicePlan !== 'pro') {
+      try {
+        const _did = await window.electronAPI.getDeviceId();
+        _cloudSync._syncDevicePlan(_did, 'pro');
+      } catch {}
+    }
+    console.log(`[plan] device=${_devicePlan} account=${_accountPlan} efectivo=${window._userPlan}`);
     _applyPlanRestrictions(window._userPlan);
   } else {
     // En web: precargar datos desde Supabase si hay sesión activa
