@@ -5537,6 +5537,12 @@ const _cloudSync = {
             _storage.setItem('umbra_auth_session', JSON.stringify({ access_token, refresh_token }));
             await _cloudSync._loadFromCloud();
             _cloudSync._updateAvatar(data.session.user);
+            // Re-renderizar con los datos cargados desde la nube
+            if (typeof initSchedules === 'function') {
+              initSchedules();
+              if (typeof loadFromStorage === 'function') loadFromStorage();
+              if (typeof renderTable === 'function') renderTable();
+            }
           } catch(e) { console.warn('[cloudSync] auth callback error:', e); }
         });
         // Restaurar sesión: primero localStorage, luego _electronStore como fallback
@@ -5553,6 +5559,7 @@ const _cloudSync = {
           if (session) {
             _sbUserId = session.user.id;
             _cloudSync._updateAvatar(session.user);
+            await _cloudSync._loadFromCloud();
           } else {
             _cloudSync._showLoginBtn();
           }
@@ -5571,7 +5578,7 @@ const _cloudSync = {
   },
   _clearLocalScheduleData() {
     const _PREFIXES = ['horario_v3_','horario_slots_','horario_calendar_','horario_pnotes_','horario_pcells_','puntual_'];
-    const _EXACT = new Set(['horario_v3','horario_slots','horario_schedules_list','horario_active_schedule','umbra_notif_config','umbra-palette','umbra-wallpaper','showWeekend']);
+    const _EXACT = new Set(['horario_v3','horario_slots','horario_schedules_list','horario_active_schedule','umbra_notif_config','showWeekend']);
     const allKeys = isElectron ? Object.keys(_electronStore) : Object.keys(localStorage);
     for (const key of allKeys) {
       if (key === 'umbra_local_owner' || key === 'umbra_auth_session') continue;
@@ -5650,12 +5657,19 @@ const _cloudSync = {
     _cloudSync._showLoginBtn();
     // Limpiar datos locales del usuario que cerró sesión
     _cloudSync._clearLocalScheduleData();
-    // Recargar el horario vacío
+    // Recargar el horario vacío de inmediato
     if (typeof initSchedules === 'function') {
+      const _keepPalette   = _electronStore['umbra-palette'];
+      const _keepWallpaper = _electronStore['umbra-wallpaper'];
       _electronStore = {};
+      if (_keepPalette)   _electronStore['umbra-palette']   = _keepPalette;
+      if (_keepWallpaper) _electronStore['umbra-wallpaper'] = _keepWallpaper;
       initSchedules();
-      if (typeof loadFromStorage === 'function') loadFromStorage();
+      currentData    = deepClone(INITIAL_DATA);
+      categoryColors = {};
+      categoryLabels = {};
       if (typeof renderTable === 'function') renderTable();
+      if (typeof loadCronosPalette === 'function') loadCronosPalette();
     }
   },
   set(key, value) {
