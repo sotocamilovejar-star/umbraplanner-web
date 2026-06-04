@@ -5618,15 +5618,12 @@ const _cloudSync = {
         }
       });
       console.log(`[cloudSync] ${data.length} claves cargadas desde la nube`);
-      // Actualizar categorías en memoria usando el horario activo de la nube
+      // Actualizar UI inmediatamente con los datos de la nube
       try {
-        const _aid = (isElectron ? _electronStore['horario_active_schedule'] : localStorage.getItem('horario_active_schedule')) || 'sc_default';
-        const _raw = isElectron ? _electronStore['horario_v3_' + _aid] : localStorage.getItem('horario_v3_' + _aid);
-        if (_raw) {
-          const _p = JSON.parse(_raw);
-          if (_p.colors && Object.keys(_p.colors).length > 0) categoryColors = _p.colors;
-          if (_p.labels && Object.keys(_p.labels).length > 0) categoryLabels = _p.labels;
-        }
+        if (typeof initSchedules === 'function') initSchedules();
+        if (typeof loadFromStorage === 'function') loadFromStorage();
+        if (typeof renderTable === 'function') renderTable();
+        if (typeof renderLegend === 'function') renderLegend();
       } catch(e) {}
     }
     // Primer push: subir datos locales que la nube no tiene aún
@@ -5661,17 +5658,14 @@ const _cloudSync = {
     if (isElectron) window.electronAPI.openAuthUrl(data.url);
     else window.location.href = data.url;
   },
-  async signOut() {
-    if (_sbClient) await _sbClient.auth.signOut();
+  signOut() {
+    // 1. Limpiar UI inmediatamente — no esperar la llamada de red
     _sbUserId = null;
     window._electronUser = null;
-    // Ocultar avatar, mostrar botón login
     const av = document.getElementById('tb-user-avatar');
     if (av) { av.style.opacity = '0'; av.textContent = 'M'; }
     _cloudSync._showLoginBtn();
-    // Limpiar datos locales del usuario que cerró sesión
     _cloudSync._clearLocalScheduleData();
-    // Recargar el horario vacío de inmediato
     if (typeof initSchedules === 'function') {
       const _keepPalette   = _electronStore['umbra-palette'];
       const _keepWallpaper = _electronStore['umbra-wallpaper'];
@@ -5687,6 +5681,8 @@ const _cloudSync = {
       if (typeof renderWeekSummary === 'function') renderWeekSummary();
       if (typeof loadCronosPalette === 'function') loadCronosPalette();
     }
+    // 2. Revocar sesión en Supabase en background (fire-and-forget)
+    if (_sbClient) _sbClient.auth.signOut().catch(() => {});
   },
   set(key, value) {
     if (!_sbClient || !_sbUserId) return;
