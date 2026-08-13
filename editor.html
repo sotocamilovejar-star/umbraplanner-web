@@ -4065,6 +4065,16 @@ body.view-calendario #calendar-view {
 }
 .cal-month-cell.weekend-cell .cal-day-num { color: var(--text-dim) !important; }
 .cal-month-cell.weekend-cell { background: var(--surface) !important; }
+.cal-day-num.has-ann {
+  border: 1.5px solid var(--accent);
+  color: var(--accent) !important;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.cal-month-cell.today-cell .cal-day-num.has-ann {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: white !important;
+}
 
 .cal-ann-dot, .cal-ann-preview {
   font-family: 'Plus Jakarta Sans', sans-serif !important;
@@ -5522,6 +5532,9 @@ const _SUPABASE_URL  = 'https://fwlotorqfujhziojocey.supabase.co';
 const _SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3bG90b3JxZnVqaHppb2pvY2V5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzNzYxNDQsImV4cCI6MjA5NDk1MjE0NH0.RoDOyNUryUqRBVMjbIyEEmL7yU1rJDCLzWx9eKThnrI';
 let _sbClient  = null;
 let _sbUserId  = null;
+// Permite que saveToStorage() escriba un horario vacío encima de uno con datos.
+// Solo se activa en vaciados deliberados (cerrar sesión, resetear horario).
+let _umbraAllowEmptySave = false;
 const _cloudSync = {
   async init() {
     try {
@@ -5580,7 +5593,15 @@ const _cloudSync = {
       await _cloudSync._loadFromCloud();
     } catch(e) { console.warn('[cloudSync] init fallido:', e); }
   },
-  _clearLocalScheduleData() {
+  // Borra los datos locales del horario. SOLO debe llamarse con un motivo
+  // explícito: 'sign-out' (el usuario cerró sesión) o 'switch-user' (entró otra
+  // cuenta distinta a la dueña de los datos locales). Nunca por "no hay sesión":
+  // una sesión expirada o un backend caído no son motivo para destruir datos.
+  _clearLocalScheduleData(reason) {
+    if (reason !== 'sign-out' && reason !== 'switch-user') {
+      console.warn('[cloudSync] _clearLocalScheduleData ignorado — motivo inválido:', reason);
+      return;
+    }
     const _PREFIXES = ['horario_v3_','horario_slots_','horario_calendar_','horario_pnotes_','horario_pcells_','puntual_'];
     const _EXACT = new Set(['horario_v3','horario_slots','horario_schedules_list','horario_active_schedule','umbra_notif_config','showWeekend']);
     const allKeys = isElectron ? Object.keys(_electronStore) : Object.keys(localStorage);
@@ -5591,14 +5612,14 @@ const _cloudSync = {
         else localStorage.removeItem(key);
       }
     }
-    console.log('[cloudSync] datos locales limpiados — cambio de usuario detectado');
+    console.log('[cloudSync] datos locales limpiados — motivo:', reason);
   },
   async _loadFromCloud() {
     const _OWNER_KEY = 'umbra_local_owner';
     // Detectar cambio de usuario → limpiar datos locales del usuario anterior
     const localOwner = isElectron ? _electronStore[_OWNER_KEY] : localStorage.getItem(_OWNER_KEY);
     if (localOwner && localOwner !== _sbUserId) {
-      this._clearLocalScheduleData();
+      this._clearLocalScheduleData('switch-user');
     }
     // Marcar al usuario actual como dueño de los datos locales
     if (isElectron) _electronStore[_OWNER_KEY] = _sbUserId;
@@ -5665,7 +5686,8 @@ const _cloudSync = {
     const av = document.getElementById('tb-user-avatar');
     if (av) { av.style.opacity = '0'; av.textContent = 'M'; }
     _cloudSync._showLoginBtn();
-    _cloudSync._clearLocalScheduleData();
+    _cloudSync._clearLocalScheduleData('sign-out');
+    _umbraAllowEmptySave = true;   // el vaciado es deliberado
     if (typeof initSchedules === 'function') {
       const _keepPalette   = _electronStore['umbra-palette'];
       const _keepWallpaper = _electronStore['umbra-wallpaper'];
@@ -5879,7 +5901,33 @@ function loadSlotsFromStorage() {
   } catch(e) { return false; }
 }
 
+// Cuenta las celdas con contenido de una matriz de horario.
+function _countFilledCells(data) {
+  if (!Array.isArray(data)) return 0;
+  let n = 0;
+  for (const row of data) {
+    if (!Array.isArray(row)) continue;
+    for (const cell of row) if (cell) n++;
+  }
+  return n;
+}
+
 function saveToStorage() {
+  // Guarda anti-borrado: nunca escribir un horario vacío encima de uno con
+  // datos. Vaciar a mano ocurre celda por celda; saltar de varias celdas a
+  // cero de golpe siempre vino de un bug de carga o render (incidentes
+  // 2026-05-31 y 2026-08-13), nunca del usuario. Los vaciados deliberados
+  // (cerrar sesión, resetear horario) levantan _umbraAllowEmptySave.
+  if (!_umbraAllowEmptySave && _countFilledCells(currentData) === 0) {
+    try {
+      const prev = JSON.parse(_storage.getItem(STORAGE_KEY) || 'null');
+      const prevCells = prev ? _countFilledCells(prev.data) : 0;
+      if (prevCells >= 3) {
+        console.warn(`[storage] guardado vacío bloqueado — ${STORAGE_KEY} conserva ${prevCells} celdas`);
+        return;
+      }
+    } catch(e) {}
+  }
   try { _storage.setItem(STORAGE_KEY, JSON.stringify({ data: currentData, colors: categoryColors, labels: categoryLabels })); } catch(e) {}
   // Refrescar mini preview de la tarjeta activa
   if (typeof refreshActiveCardPreview === 'function') refreshActiveCardPreview();
@@ -6563,6 +6611,7 @@ function updateAnnotation(dateKey, id, text, time, type, ramo) {
       time: time || '',
       type: type !== undefined ? type : (a.type || 'rec'),
       ramo: ramo !== undefined ? ramo : (a.ramo || ''),
+      ...(a.slot != null ? { slot: a.slot } : {}),
     } : a
   );
   _saveAnnotations(dateKey, arr);
@@ -7244,6 +7293,9 @@ function renderCalendar() {
         more.style.cssText = 'font-size:0.6rem;opacity:0.7;';
         cell.appendChild(more);
       }
+    } else if (anns.length > 0 && currentMonth && !hasClassOnDay) {
+      // Sin celda: círculo acento en el número del día
+      dayNum.classList.add('has-ann');
     }
 
     if (isEditable) {
@@ -7546,7 +7598,7 @@ function renderWeekSummary() {
       if (cell.split) return !!(cell.top?.text?.trim() || cell.bottom?.text?.trim());
       return !!(cell.text?.trim());
     });
-    const anns = hasClassOnDay ? parseAnnotations(dateKey) : [];
+    const anns = parseAnnotations(dateKey);
     // Notas puntuales del día (todas las franjas y mitades)
     const pnotes = [];
     for (let s = 0; s < SLOTS.length; s++) {
@@ -11872,10 +11924,11 @@ function _migrateStorageKeys() {
     }
     _migrateStorageKeys();
     await _cloudSync.init(); // Registra listener OAuth umbraplanner://
-    // Modo invitado: si no hay sesión → limpiar datos del usuario anterior
-    if (!_sbUserId) {
-      _cloudSync._clearLocalScheduleData();
-    }
+    // NO limpiar datos locales por falta de sesión. Sin sesión puede significar
+    // token expirado, sin internet o backend caído — casos en los que la app
+    // debe seguir funcionando en local con los datos del dispositivo.
+    // La limpieza por privacidad la hacen signOut() (cierre explícito) y
+    // _loadFromCloud() (cuando entra una cuenta distinta a la dueña).
     // Combinar plan de dispositivo (devices) + plan de cuenta (user_data)
     const _devicePlan = await window.electronAPI.getPlan();
     const _accountPlan = await _cloudSync._getUserPlan();
